@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod/v3';
@@ -30,7 +30,11 @@ import {
 } from '../ui/select';
 import { Product } from '../../data/products';
 import { useAdminStore } from '../../store/adminStore';
+import { useAdminAuthStore } from '../../store/adminAuthStore';
 import { toast } from 'sonner';
+import { Upload, Link, X, Loader2, ImageIcon } from 'lucide-react';
+
+const API_URL = 'http://localhost:4000';
 
 const productSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -51,6 +55,12 @@ interface ProductFormProps {
 
 export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, product }) => {
   const { addProduct, updateProduct } = useAdminStore();
+  const { getToken } = useAdminAuthStore();
+  const [imageMode, setImageMode] = useState<'url' | 'upload'>('url');
+  const [isUploading, setIsUploading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string>('');
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
@@ -64,6 +74,8 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, produ
     },
   });
 
+  const imageUrl = form.watch('image');
+
   useEffect(() => {
     if (isOpen) {
       if (product) {
@@ -75,6 +87,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, produ
           image: product.image,
           featured: product.featured || false,
         });
+        setPreviewUrl(product.image);
       } else {
         form.reset({
           name: '',
@@ -84,18 +97,116 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, produ
           image: '',
           featured: false,
         });
+        setPreviewUrl('');
       }
+      setImageMode('url');
     }
   }, [isOpen, product, form]);
 
-  const onSubmit = async (values: any) => {
-    const validatedValues = values as ProductFormValues;
+  useEffect(() => {
+    if (imageMode === 'url' && imageUrl) {
+      setPreviewUrl(imageUrl);
+    }
+  }, [imageUrl, imageMode]);
+
+  const handleFileUpload = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      toast.error('Please select an image file');
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be less than 10MB');
+      return;
+    }
+
+    setIsUploading(true);
+    const localPreview = URL.createObjectURL(file);
+    setPreviewUrl(localPreview);
+
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const token = getToken();
+      const response = await fetch(`${API_URL}/api/upload`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || 'Upload failed');
+      }
+
+      form.setValue('image', data.url, { shouldValidate: true });
+      setPreviewUrl(data.url);
+      toast.success('Image uploaded successfully');
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+      setPreviewUrl('');
+    } finally {
+      setIsUploading(false);
+      URL.revokeObjectURL(localPreview);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files[0];
+    if (file) handleFileUpload(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFileUpload(file);
+  };
+
+  const clearImage = () => {
+    form.setValue('image', '');
+    setPreviewUrl('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const onSubmit = async (values: ProductFormValues) => {
     try {
       if (product) {
-        await updateProduct({ ...validatedValues, id: product.id });
+        await updateProduct({ 
+          id: product.id,
+          name: values.name,
+          description: values.description,
+          price: values.price,
+          category: values.category,
+          image: values.image,
+          featured: values.featured,
+        });
         toast.success('Product updated successfully');
       } else {
-        await addProduct(validatedValues);
+        await addProduct({
+          name: values.name,
+          description: values.description,
+          price: values.price,
+          category: values.category,
+          image: values.image,
+          featured: values.featured,
+        });
         toast.success('Product created successfully');
       }
       onClose();
@@ -194,15 +305,118 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, produ
               )}
             />
 
+            {/* Image Section */}
             <FormField
               control={form.control as any}
               name="image"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Image URL</FormLabel>
-                  <FormControl>
-                    <Input placeholder="https://example.com/image.jpg" {...field} />
-                  </FormControl>
+                  <FormLabel>Product Image</FormLabel>
+                  
+                  {/* Mode Toggle */}
+                  <div className="flex gap-2 mb-3">
+                    <Button
+                      type="button"
+                      variant={imageMode === 'upload' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setImageMode('upload')}
+                      className="flex items-center gap-2"
+                    >
+                      <Upload size={14} />
+                      Upload
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={imageMode === 'url' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setImageMode('url')}
+                      className="flex items-center gap-2"
+                    >
+                      <Link size={14} />
+                      URL
+                    </Button>
+                  </div>
+
+                  {imageMode === 'upload' ? (
+                    <div className="space-y-3">
+                      {/* Drop Zone */}
+                      <div
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`
+                          relative border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all
+                          ${isDragging 
+                            ? 'border-amber-500 bg-amber-50' 
+                            : 'border-neutral-300 hover:border-amber-400 hover:bg-neutral-50'
+                          }
+                          ${isUploading ? 'pointer-events-none opacity-60' : ''}
+                        `}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileSelect}
+                          className="hidden"
+                        />
+                        
+                        {isUploading ? (
+                          <div className="flex flex-col items-center gap-2">
+                            <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
+                            <p className="text-sm text-neutral-600">Uploading...</p>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center gap-2">
+                            <Upload className="w-8 h-8 text-neutral-400" />
+                            <p className="text-sm text-neutral-600">
+                              <span className="font-medium text-amber-600">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-neutral-400">PNG, JPG, WEBP up to 10MB</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <FormControl>
+                      <Input 
+                        placeholder="https://example.com/image.jpg" 
+                        {...field} 
+                      />
+                    </FormControl>
+                  )}
+
+                  {/* Image Preview */}
+                  {previewUrl && (
+                    <div className="relative mt-3">
+                      <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-neutral-100">
+                        <img 
+                          src={previewUrl} 
+                          alt="Preview" 
+                          className="w-full h-full object-cover"
+                          onError={() => setPreviewUrl('')}
+                        />
+                        <button
+                          type="button"
+                          onClick={clearImage}
+                          className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-black/80 rounded-full text-white transition-colors"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {!previewUrl && !isUploading && (
+                    <div className="mt-3 aspect-video w-full rounded-lg bg-neutral-100 flex items-center justify-center">
+                      <div className="text-center text-neutral-400">
+                        <ImageIcon className="w-8 h-8 mx-auto mb-2" />
+                        <p className="text-xs">No image selected</p>
+                      </div>
+                    </div>
+                  )}
+
                   <FormMessage />
                 </FormItem>
               )}
@@ -210,7 +424,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, produ
 
             <DialogFooter className="pt-4">
               <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
-              <Button type="submit">{product ? 'Save Changes' : 'Create Product'}</Button>
+              <Button type="submit" disabled={isUploading}>
+                {product ? 'Save Changes' : 'Create Product'}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

@@ -1,5 +1,8 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import multer from "multer";
+import { v2 as cloudinary } from "cloudinary";
 import {
   getProducts,
   getProductById,
@@ -19,6 +22,26 @@ const PORT = process.env.PORT ?? 4000;
 
 app.use(cors({ origin: true }));
 app.use(express.json());
+
+// Cloudinary configuration
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Multer configuration for memory storage
+const upload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  fileFilter: (_req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'));
+    }
+  }
+});
 
 // Simple admin auth (demo only – use proper auth in production)
 const ADMIN_SECRET = "admin123";
@@ -41,6 +64,51 @@ function requireAdmin(req: express.Request, res: express.Response, next: express
   }
   next();
 }
+
+// Image Upload endpoint
+app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No image file provided" });
+    }
+
+    // Check if Cloudinary is configured
+    if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name') {
+      return res.status(500).json({ 
+        error: "Cloudinary not configured", 
+        message: "Please set up Cloudinary credentials in server/.env file" 
+      });
+    }
+
+    // Upload to Cloudinary using buffer
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "yoseph-design/products",
+          resource_type: "image",
+          transformation: [
+            { width: 1200, height: 1200, crop: "limit" },
+            { quality: "auto:good" },
+            { fetch_format: "auto" }
+          ]
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file!.buffer);
+    });
+
+    res.json({ 
+      url: result.secure_url,
+      public_id: result.public_id 
+    });
+  } catch (error: any) {
+    console.error("Upload error:", error);
+    res.status(500).json({ error: "Upload failed", message: error.message });
+  }
+});
 
 // Products (public read; admin write)
 app.get("/api/products", (_req, res) => {

@@ -1,5 +1,7 @@
 import { Product, PRODUCTS } from "./data/products";
 
+export type { Product };
+
 export type OrderStatus = "pending" | "processed" | "shipped" | "delivered" | "cancelled";
 
 export interface OrderItem extends Product {
