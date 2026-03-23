@@ -4,7 +4,7 @@ import { Footer } from './Footer';
 import { Sidebar } from './Sidebar';
 import { StudioSidebar } from './StudioSidebar';
 import { StudioCategoryProvider } from '../context/StudioCategoryContext';
-import { LightWaves } from './ui/LightWaves';
+import { LightWaves } from './LightWaves';
 import { CartDrawer } from './CartDrawer';
 import { CheckoutModal } from './CheckoutModal';
 import { ProductDetail } from './ProductDetail';
