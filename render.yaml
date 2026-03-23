@@ -14,3 +14,18 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+
+  - type: web
+    name: yoseph-design-admin
+    runtime: static
+    buildCommand: npm ci && npm run build -w admin
+    staticPublishPath: ./admin/dist
+    buildFilter:
+      paths:
+        - admin/**
+        - package.json
+        - package-lock.json
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

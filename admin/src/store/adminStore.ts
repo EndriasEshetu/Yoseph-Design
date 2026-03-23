@@ -2,8 +2,7 @@ import { create } from 'zustand';
 import { Product } from '../data/products';
 import { Order, OrderStatus } from '../types/admin';
 import { useAdminAuthStore } from './adminAuthStore';
-
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../config';
 
 export type ModelFormat = 'RVT' | 'FBX' | 'OBJ' | 'SKP' | '3DS' | 'DWG';
 

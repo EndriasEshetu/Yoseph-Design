@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AdminUser } from '../types/admin';
-
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../config';
 
 interface AuthState {
   user: AdminUser | null;

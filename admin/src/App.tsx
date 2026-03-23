@@ -9,6 +9,7 @@ import { StudioManagement } from './components/admin/StudioManagement';
 import { OrderManagement } from './components/admin/OrderManagement';
 import { ProtectedRoute } from './components/admin/ProtectedRoute';
 import { useAdminAuthStore } from './store/adminAuthStore';
+import { API_URL } from './config';
 
 function App() {
   const { token, logout } = useAdminAuthStore();
@@ -18,7 +19,7 @@ function App() {
       if (!token) return;
       
       try {
-        const res = await fetch('http://localhost:4000/api/orders', {
+        const res = await fetch(`${API_URL}/api/orders`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         

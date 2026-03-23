@@ -34,8 +34,7 @@ import { useAdminStore } from '../../store/adminStore';
 import { useAdminAuthStore } from '../../store/adminAuthStore';
 import { toast } from 'sonner';
 import { Upload, Link, X, Loader2, ImageIcon } from 'lucide-react';
-
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../../config';
 
 const FORMATS = ['RVT', 'FBX', 'OBJ', 'SKP', '3DS', 'DWG'] as const;
 const CATEGORIES = ['Architectural', 'Furniture', 'Lighting', 'Decor'];
@@ -152,15 +151,21 @@ export const StudioModelForm = ({ isOpen, onClose, model }: StudioModelFormProps
   };
 
   const onSubmit = async (values: FormValues) => {
+    const payload = {
+      name: values.name,
+      description: values.description,
+      price: values.price,
+      format: values.format,
+      category: values.category,
+      image: values.image,
+      featured: values.featured,
+    };
     try {
       if (model) {
-        await updateStudioModel({
-          id: model.id,
-          ...values,
-        });
+        await updateStudioModel({ id: model.id, ...payload });
         toast.success('Studio model updated');
       } else {
-        await addStudioModel(values);
+        await addStudioModel(payload);
         toast.success('Studio model created');
       }
       onClose();

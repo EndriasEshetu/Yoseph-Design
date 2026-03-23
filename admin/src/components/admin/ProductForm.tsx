@@ -33,8 +33,7 @@ import { useAdminStore } from '../../store/adminStore';
 import { useAdminAuthStore } from '../../store/adminAuthStore';
 import { toast } from 'sonner';
 import { Upload, Link, X, Loader2, ImageIcon } from 'lucide-react';
-
-const API_URL = 'http://localhost:4000';
+import { API_URL } from '../../config';
 
 const MAX_ADDITIONAL_IMAGES = 4;
 
