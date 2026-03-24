@@ -6,11 +6,18 @@ import { useStudio } from '../context/StudioContext';
 import type { StudioCategoryId } from '../context/StudioCategoryContext';
 import type { StudioModel } from '../data/studioModels';
 
+const CATEGORY_MAP: Record<StudioCategoryId, string | null> = {
+  'all': null,
+  'logo-design': 'Logo Design',
+  'branding': 'Branding',
+  'architectural': 'Architectural',
+  'product': 'Product',
+};
+
 function filterModelsByCategory(models: StudioModel[], categoryId: StudioCategoryId) {
-  if (categoryId === 'logo-design' || categoryId === 'branding') return models;
-  if (categoryId === 'architectural') return models.filter((m) => m.category === 'Architectural');
-  if (categoryId === 'product') return models.filter((m) => ['Furniture', 'Lighting', 'Decor'].includes(m.category));
-  return models;
+  const mapped = CATEGORY_MAP[categoryId];
+  if (!mapped) return models;
+  return models.filter((m) => m.category === mapped);
 }
 
 export const StudioModelGrid = () => {
@@ -37,7 +44,8 @@ export const StudioModelGrid = () => {
         </div>
       ) : filteredModels.length === 0 ? (
         <div className="text-center py-16 text-neutral-500">
-          <p className="text-lg">No 3D models in this category yet.</p>
+          <p className="text-lg">No work in this category yet.</p>
+          <p className="text-sm mt-2">Check back soon or browse another category.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">

@@ -50,6 +50,18 @@ const upload = multer({
   }
 });
 
+const pdfUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 25 * 1024 * 1024 }, // 25MB for PDFs
+  fileFilter: (_req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
+
 // Simple admin auth (demo only – use proper auth in production)
 // Stateless token so it remains valid after server restart
 const ADMIN_SECRET = "admin123";
@@ -130,6 +142,44 @@ app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) =
   } catch (error: any) {
     console.error("Upload error:", error);
     res.status(500).json({ error: "Upload failed", message: error.message });
+  }
+});
+
+// PDF Upload endpoint
+app.post("/api/upload-pdf", requireAdmin, pdfUpload.single("pdf"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No PDF file provided" });
+    }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name') {
+      return res.status(500).json({
+        error: "Cloudinary not configured",
+        message: "Please set up Cloudinary credentials in server/.env file"
+      });
+    }
+
+    const result = await new Promise<any>((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: "yoseph-design/studio-pdfs",
+          resource_type: "raw",
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      );
+      uploadStream.end(req.file!.buffer);
+    });
+
+    res.json({
+      url: result.secure_url,
+      public_id: result.public_id
+    });
+  } catch (error: any) {
+    console.error("PDF upload error:", error);
+    res.status(500).json({ error: "PDF upload failed", message: error.message });
   }
 });
 

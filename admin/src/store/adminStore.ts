@@ -10,11 +10,12 @@ export interface StudioModel {
   id: string;
   name: string;
   description: string;
-  price: number;
-  format: ModelFormat;
+  price?: number;
+  format?: ModelFormat;
   category: string;
   image: string;
   featured?: boolean;
+  pdfUrl?: string;
 }
 
 interface AdminState {

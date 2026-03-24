@@ -1,3 +1,8 @@
+export interface ModelFile {
+  format: string;
+  url?: string;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -8,6 +13,8 @@ export interface Product {
   /** Additional images (max 4). Shown in product detail alongside main image. */
   images?: string[];
   featured?: boolean;
+  /** 3D model files available for this product */
+  modelFiles?: ModelFile[];
 }
 
 export const PRODUCTS: Product[] = [

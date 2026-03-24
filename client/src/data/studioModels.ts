@@ -4,11 +4,12 @@ export interface StudioModel {
   id: string;
   name: string;
   description: string;
-  price: number;
-  format: ModelFormat;
+  price?: number;
+  format?: ModelFormat;
   category: string;
   image: string;
   featured?: boolean;
+  pdfUrl?: string;
 }
 
 export const STUDIO_MODELS: StudioModel[] = [
@@ -21,6 +22,7 @@ export const STUDIO_MODELS: StudioModel[] = [
     category: 'Architectural',
     image: 'https://storage.googleapis.com/dala-prod-public-storage/generated-images/f579f73a-3c76-43af-9367-4cbdb65814c1/hero-interior-2e0b088a-1773311416938.webp',
     featured: true,
+    pdfUrl: '/3D-descriptions/1761161024950_1.3-Real-World-Applications-of-Machine-Learning.pdf',
   },
   {
     id: 'sm-2',
@@ -28,7 +30,7 @@ export const STUDIO_MODELS: StudioModel[] = [
     description: 'Sofa, armchair and side table. Clean topology, PBR-ready materials.',
     price: 45,
     format: 'FBX',
-    category: 'Furniture',
+    category: 'Product',
     image: 'https://storage.googleapis.com/dala-prod-public-storage/generated-images/f579f73a-3c76-43af-9367-4cbdb65814c1/modern-sofa-product-486d0e4b-1773311416830.webp',
   },
   {
@@ -47,7 +49,7 @@ export const STUDIO_MODELS: StudioModel[] = [
     description: 'Desk and floor lamp set. OBJ with separate material IDs for easy texturing.',
     price: 32,
     format: 'OBJ',
-    category: 'Lighting',
+    category: 'Product',
     image: 'https://storage.googleapis.com/dala-prod-public-storage/generated-images/f579f73a-3c76-43af-9367-4cbdb65814c1/bauhaus-lamp-1a3865cb-1773311415753.webp',
   },
   {
@@ -56,7 +58,7 @@ export const STUDIO_MODELS: StudioModel[] = [
     description: 'Lightweight stool model. Available in SketchUp and FBX for quick iteration.',
     price: 28,
     format: 'SKP',
-    category: 'Furniture',
+    category: 'Product',
     image: 'https://storage.googleapis.com/dala-prod-public-storage/generated-images/f579f73a-3c76-43af-9367-4cbdb65814c1/architectural-stools-21cd874c-1773311415213.webp',
   },
   {
@@ -74,7 +76,7 @@ export const STUDIO_MODELS: StudioModel[] = [
     description: 'Three vases with sculptural forms. 3DS Max format with V-Ray materials.',
     price: 22,
     format: '3DS',
-    category: 'Decor',
+    category: 'Branding',
     image: 'https://storage.googleapis.com/dala-prod-public-storage/generated-images/f579f73a-3c76-43af-9367-4cbdb65814c1/ceramic-vases-9752db5d-1773311416973.webp',
   },
 ];

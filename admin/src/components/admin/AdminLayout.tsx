@@ -4,6 +4,7 @@ import {
   LayoutDashboard, 
   Package, 
   Box,
+  Boxes,
   ShoppingCart, 
   Settings, 
   LogOut, 
@@ -57,7 +58,8 @@ export const AdminLayout: React.FC = () => {
   const navItems = [
     { to: '/dashboard', icon: LayoutDashboard, label: 'Overview', exact: true },
     { to: '/dashboard/products', icon: Package, label: 'Products' },
-    { to: '/dashboard/studio', icon: Box, label: 'Studio (3D Models)' },
+    { to: '/dashboard/models', icon: Boxes, label: '3D Models' },
+    { to: '/dashboard/studio', icon: Box, label: 'Studio' },
     { to: '/dashboard/orders', icon: ShoppingCart, label: 'Orders' },
     { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];

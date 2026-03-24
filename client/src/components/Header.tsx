@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ShoppingBag, Search, Menu, X, Mail, ArrowLeft } from 'lucide-react';
+import { ShoppingBag, Search, Menu, X, Mail, ArrowLeft, Box } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useShop } from '../context/ShopContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,8 +7,10 @@ import { Link, useLocation } from 'react-router-dom';
 import { SiTiktok } from 'react-icons/si';
 import { FaInstagram, FaYoutube, FaFacebookF, FaLinkedinIn, FaTelegramPlane } from 'react-icons/fa';
 import { Product } from '../data/products';
+import { StudioModel } from '../data/studioModels';
 import logoImage from '../assets/yoseph-logo.png';
 import { useStudioCategory, STUDIO_CATEGORIES } from '../context/StudioCategoryContext';
+import { useStudio } from '../context/StudioContext';
 
 const socialLinks = [
   { name: "TikTok", icon: SiTiktok, href: "#" },
@@ -23,9 +25,10 @@ const socialLinks = [
 interface HeaderProps {
   onOpenCart: () => void;
   onSelectProduct?: (product: Product) => void;
+  onSelectStudioModel?: (model: StudioModel) => void;
 }
 
-export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
+export const Header = ({ onOpenCart, onSelectProduct, onSelectStudioModel }: HeaderProps) => {
   const location = useLocation();
   const isStudioPage = location.pathname === '/studio';
   const { setSelectedCategory } = useStudioCategory();
@@ -34,6 +37,7 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const { itemCount } = useCart();
   const { products } = useShop();
+  const { studioModels } = useStudio();
   const searchRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -52,12 +56,28 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
         if (aboveRange) {
           return product.price >= parseInt(aboveRange[1]);
         }
+
+        const is3DQuery = /3d|model\s*file/i.test(query);
+        if (is3DQuery) {
+          return product.modelFiles && product.modelFiles.length > 0;
+        }
         
         return (
           product.name.toLowerCase().includes(query) ||
           product.category.toLowerCase().includes(query) ||
           product.description.toLowerCase().includes(query) ||
           priceStr.includes(query)
+        );
+      }).slice(0, 6)
+    : [];
+
+  const studioSearchResults = searchQuery.trim()
+    ? studioModels.filter(model => {
+        const query = searchQuery.toLowerCase();
+        return (
+          model.name.toLowerCase().includes(query) ||
+          model.category.toLowerCase().includes(query) ||
+          model.description.toLowerCase().includes(query)
         );
       }).slice(0, 6)
     : [];
@@ -94,6 +114,19 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
     setIsSearchOpen(false);
     setSearchQuery('');
   };
+
+  const handleStudioModelClick = (model: StudioModel) => {
+    if (onSelectStudioModel) {
+      onSelectStudioModel(model);
+    }
+    setIsSearchOpen(false);
+    setSearchQuery('');
+  };
+
+  const activeResults = isStudioPage ? studioSearchResults : searchResults;
+  const searchPlaceholder = isStudioPage
+    ? 'Search studio by name, category...'
+    : 'Search by name, category, price, 3D...';
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
@@ -145,7 +178,7 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search by name, category, price..."
+                placeholder={searchPlaceholder}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => setIsSearchOpen(true)}
@@ -170,32 +203,62 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
                   exit={{ opacity: 0, y: -10 }}
                   className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-neutral-100 overflow-hidden z-50"
                 >
-                  {searchResults.length > 0 ? (
+                  {activeResults.length > 0 ? (
                     <div className="max-h-96 overflow-y-auto">
                       <p className="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-neutral-400 bg-neutral-50">
-                        {searchResults.length} Result{searchResults.length !== 1 ? 's' : ''}
+                        {activeResults.length} Result{activeResults.length !== 1 ? 's' : ''}
                       </p>
-                      {searchResults.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => handleProductClick(product)}
-                          className="w-full flex items-center gap-4 p-4 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-50 last:border-b-0"
-                        >
-                          <div className="w-14 h-14 bg-neutral-100 rounded-lg overflow-hidden shrink-0">
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{product.name}</p>
-                            <p className="text-xs text-neutral-500">{product.category}</p>
-                          </div>
-                          <p className="text-sm font-semibold shrink-0">${product.price.toLocaleString()}</p>
-                        </button>
-                      ))}
+                      {isStudioPage
+                        ? studioSearchResults.map((model) => (
+                            <button
+                              key={model.id}
+                              onClick={() => handleStudioModelClick(model)}
+                              className="w-full flex items-center gap-4 p-4 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-50 last:border-b-0"
+                            >
+                              <div className="w-14 h-14 bg-neutral-100 rounded-lg overflow-hidden shrink-0">
+                                <img src={model.image} alt={model.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{model.name}</p>
+                                <p className="text-xs text-neutral-500">{model.category}</p>
+                              </div>
+                            </button>
+                          ))
+                        : searchResults.map((product) => (
+                            <button
+                              key={product.id}
+                              onClick={() => handleProductClick(product)}
+                              className="w-full flex items-center gap-4 p-4 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-50 last:border-b-0"
+                            >
+                              <div className="w-14 h-14 bg-neutral-100 rounded-lg overflow-hidden shrink-0">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{product.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs text-neutral-500">{product.category}</p>
+                                  {product.modelFiles && product.modelFiles.length > 0 && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                                      <Box size={10} /> 3D
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                              <p className="text-sm font-semibold shrink-0">${product.price.toLocaleString()}</p>
+                            </button>
+                          ))
+                      }
                     </div>
                   ) : (
                     <div className="p-8 text-center">
-                      <p className="text-neutral-500 text-sm">No products found for "{searchQuery}"</p>
-                      <p className="text-neutral-400 text-xs mt-1">Try searching by name, category, or price (e.g., "under 1000")</p>
+                      <p className="text-neutral-500 text-sm">
+                        No {isStudioPage ? 'studio posts' : 'products'} found for "{searchQuery}"
+                      </p>
+                      <p className="text-neutral-400 text-xs mt-1">
+                        {isStudioPage
+                          ? 'Try searching by name or category'
+                          : 'Try searching by name, category, price (e.g., "under 1000"), or "3D"'}
+                      </p>
                     </div>
                   )}
                 </motion.div>
@@ -256,7 +319,7 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
                 <input
                   type="text"
-                  placeholder="Search products..."
+                  placeholder={isStudioPage ? 'Search studio...' : 'Search products...'}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   autoFocus
@@ -275,27 +338,51 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
               {/* Mobile Search Results */}
               {searchQuery.trim() && (
                 <div className="mt-2 bg-white rounded-lg border border-neutral-100 overflow-hidden">
-                  {searchResults.length > 0 ? (
+                  {activeResults.length > 0 ? (
                     <div className="max-h-64 overflow-y-auto">
-                      {searchResults.map((product) => (
-                        <button
-                          key={product.id}
-                          onClick={() => handleProductClick(product)}
-                          className="w-full flex items-center gap-3 p-3 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-50 last:border-b-0"
-                        >
-                          <div className="w-12 h-12 bg-neutral-100 rounded overflow-hidden shrink-0">
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium truncate">{product.name}</p>
-                            <p className="text-xs text-neutral-500">${product.price.toLocaleString()} · {product.category}</p>
-                          </div>
-                        </button>
-                      ))}
+                      {isStudioPage
+                        ? studioSearchResults.map((model) => (
+                            <button
+                              key={model.id}
+                              onClick={() => handleStudioModelClick(model)}
+                              className="w-full flex items-center gap-3 p-3 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-50 last:border-b-0"
+                            >
+                              <div className="w-12 h-12 bg-neutral-100 rounded overflow-hidden shrink-0">
+                                <img src={model.image} alt={model.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{model.name}</p>
+                                <p className="text-xs text-neutral-500">{model.category}</p>
+                              </div>
+                            </button>
+                          ))
+                        : searchResults.map((product) => (
+                            <button
+                              key={product.id}
+                              onClick={() => handleProductClick(product)}
+                              className="w-full flex items-center gap-3 p-3 hover:bg-neutral-50 transition-colors text-left border-b border-neutral-50 last:border-b-0"
+                            >
+                              <div className="w-12 h-12 bg-neutral-100 rounded overflow-hidden shrink-0">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{product.name}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-xs text-neutral-500">${product.price.toLocaleString()} · {product.category}</p>
+                                  {product.modelFiles && product.modelFiles.length > 0 && (
+                                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
+                                      <Box size={10} /> 3D
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </button>
+                          ))
+                      }
                     </div>
                   ) : (
                     <div className="p-4 text-center text-neutral-500 text-sm">
-                      No products found
+                      No {isStudioPage ? 'studio posts' : 'products'} found
                     </div>
                   )}
                 </div>
@@ -333,12 +420,31 @@ export const Header = ({ onOpenCart, onSelectProduct }: HeaderProps) => {
                 ))
               ) : (
                 <>
-                  <a href="#collection" onClick={() => setIsMenuOpen(false)} className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors">Living</a>
-                  <a href="#collection" onClick={() => setIsMenuOpen(false)} className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors">Bedroom</a>
-                  <a href="#collection" onClick={() => setIsMenuOpen(false)} className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors">Dining</a>
-                  <a href="#collection" onClick={() => setIsMenuOpen(false)} className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors">Office</a>
-                  <a href="#collection" onClick={() => setIsMenuOpen(false)} className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors">Outdoor</a>
-                  <a href="#collection" onClick={() => setIsMenuOpen(false)} className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors">Decor</a>
+                  {['LIVING', 'BEDROOM', 'DINING', 'OFFICE', 'OUTDOOR', 'DECOR'].map((cat) => (
+                    <Link
+                      key={cat}
+                      to={`/?category=${cat}`}
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' });
+                      }}
+                      className="block text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors"
+                    >
+                      {cat}
+                    </Link>
+                  ))}
+                  <div className="border-t border-neutral-200 my-2" />
+                  <Link
+                    to="/?category=3D_MODEL"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      document.getElementById('collection')?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex items-center gap-2 text-sm uppercase tracking-widest font-medium text-neutral-700 hover:text-amber-500 transition-colors"
+                  >
+                    <Box size={14} />
+                    3D Model
+                  </Link>
                 </>
               )}
             </div>

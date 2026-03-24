@@ -7,6 +7,7 @@ import { DashboardHome } from './components/admin/DashboardHome';
 import { ProductManagement } from './components/admin/ProductManagement';
 import { StudioManagement } from './components/admin/StudioManagement';
 import { OrderManagement } from './components/admin/OrderManagement';
+import { ModelManagement } from './components/admin/ModelManagement';
 import { ProtectedRoute } from './components/admin/ProtectedRoute';
 import { useAdminAuthStore } from './store/adminAuthStore';
 import { API_URL } from './config';
@@ -48,6 +49,7 @@ function App() {
         >
           <Route index element={<DashboardHome />} />
           <Route path="products" element={<ProductManagement />} />
+          <Route path="models" element={<ModelManagement />} />
           <Route path="studio" element={<StudioManagement />} />
           <Route path="orders" element={<OrderManagement />} />
           <Route path="settings" element={<div className="flex items-center justify-center h-[60vh] text-neutral-400 italic font-medium">Settings — Coming soon</div>} />

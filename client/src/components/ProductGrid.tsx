@@ -17,7 +17,9 @@ export const ProductGrid = () => {
 
   const filteredProducts =
     categoryFromUrl && categoryFromUrl.trim() !== ''
-      ? products.filter((p) => p.category === categoryFromUrl)
+      ? categoryFromUrl === '3D_MODEL'
+        ? products.filter((p) => p.modelFiles && p.modelFiles.length > 0)
+        : products.filter((p) => p.category === categoryFromUrl)
       : products;
 
   useEffect(() => {

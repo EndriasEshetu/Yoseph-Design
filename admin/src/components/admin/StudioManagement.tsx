@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Table,
   TableBody,
@@ -9,7 +9,7 @@ import {
 } from '../ui/table';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
-import { Plus, Search, Edit3, Trash2, MoreVertical, ImageIcon, Loader2 } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, MoreVertical, ImageIcon, Loader2, FileText } from 'lucide-react';
 import { useAdminStore, type StudioModel } from '../../store/adminStore';
 import { StudioModelForm } from './StudioModelForm';
 import {
@@ -21,9 +21,13 @@ import {
 import { Badge } from '../ui/badge';
 import { toast } from 'sonner';
 
+const CATEGORIES = ['All', 'Logo Design', 'Branding', 'Architectural', 'Product'] as const;
+type CategoryFilter = (typeof CATEGORIES)[number];
+
 export const StudioManagement: React.FC = () => {
   const { studioModels, loading, fetchStudioModels, deleteStudioModel } = useAdminStore();
   const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState<CategoryFilter>('All');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingModel, setEditingModel] = useState<StudioModel | undefined>(undefined);
 
@@ -31,12 +35,30 @@ export const StudioManagement: React.FC = () => {
     fetchStudioModels();
   }, [fetchStudioModels]);
 
-  const filtered = studioModels.filter(
-    (m) =>
-      m.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      m.format.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = { All: studioModels.length };
+    for (const m of studioModels) {
+      counts[m.category] = (counts[m.category] || 0) + 1;
+    }
+    return counts;
+  }, [studioModels]);
+
+  const filtered = useMemo(() => {
+    let result = studioModels;
+    if (activeCategory !== 'All') {
+      result = result.filter((m) => m.category === activeCategory);
+    }
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase();
+      result = result.filter(
+        (m) =>
+          m.name.toLowerCase().includes(q) ||
+          m.category.toLowerCase().includes(q) ||
+          (m.description || '').toLowerCase().includes(q)
+      );
+    }
+    return result;
+  }, [studioModels, activeCategory, searchTerm]);
 
   const handleEdit = (model: StudioModel) => {
     setEditingModel(model);
@@ -44,10 +66,10 @@ export const StudioManagement: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this 3D model?')) return;
+    if (!window.confirm('Delete this studio post?')) return;
     try {
       await deleteStudioModel(id);
-      toast.success('Studio model deleted');
+      toast.success('Studio post deleted');
     } catch {
       toast.error('Failed to delete');
     }
@@ -60,11 +82,12 @@ export const StudioManagement: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="relative w-full md:w-96">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
           <Input
-            placeholder="Search by name, category, format..."
+            placeholder="Search by name, category..."
             className="pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -72,10 +95,35 @@ export const StudioManagement: React.FC = () => {
         </div>
         <Button className="gap-2" onClick={() => setIsFormOpen(true)}>
           <Plus className="w-4 h-4" />
-          Add 3D Model
+          Add Studio Post
         </Button>
       </div>
 
+      {/* Category tabs */}
+      <div className="flex gap-2 flex-wrap">
+        {CATEGORIES.map((cat) => {
+          const count = categoryCounts[cat] || 0;
+          const isActive = activeCategory === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all ${
+                isActive
+                  ? 'bg-neutral-900 text-white border-neutral-900'
+                  : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50'
+              }`}
+            >
+              {cat}
+              <span className={`ml-2 text-xs ${isActive ? 'text-neutral-400' : 'text-neutral-400'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Table */}
       <div className="bg-white rounded-2xl border border-neutral-100 overflow-hidden shadow-sm">
         {loading ? (
           <div className="flex justify-center py-12">
@@ -87,17 +135,18 @@ export const StudioManagement: React.FC = () => {
               <TableRow className="bg-neutral-50 hover:bg-neutral-50 border-b border-neutral-100">
                 <TableHead className="w-[80px]">Image</TableHead>
                 <TableHead>Name</TableHead>
-                <TableHead>Format</TableHead>
                 <TableHead>Category</TableHead>
-                <TableHead>Price</TableHead>
+                <TableHead>PDF</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
-                    No studio models. Add 3D models for the client Studio page.
+                  <TableCell colSpan={5} className="text-center py-8 text-neutral-500">
+                    {activeCategory !== 'All'
+                      ? `No posts in "${activeCategory}" yet. Click "Add Studio Post" to create one.`
+                      : 'No studio posts. Click "Add Studio Post" to create one.'}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -121,10 +170,18 @@ export const StudioManagement: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="font-mono">{model.format}</Badge>
+                      <Badge variant="outline" className="text-xs">{model.category}</Badge>
                     </TableCell>
-                    <TableCell className="text-neutral-600">{model.category}</TableCell>
-                    <TableCell>${model.price.toLocaleString()}</TableCell>
+                    <TableCell>
+                      {model.pdfUrl ? (
+                        <a href={model.pdfUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-amber-600 hover:text-amber-700">
+                          <FileText className="w-4 h-4" />
+                          <span className="text-xs">View</span>
+                        </a>
+                      ) : (
+                        <span className="text-xs text-neutral-400">None</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>

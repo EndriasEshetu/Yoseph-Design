@@ -104,14 +104,13 @@ export const ProductManagement: React.FC = () => {
               <TableHead>Product Name</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Price</TableHead>
-              <TableHead>Stock</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filteredProducts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-8 text-neutral-500">
+                <TableCell colSpan={5} className="text-center py-8 text-neutral-500">
                   No products found. Make sure the server is running.
                 </TableCell>
               </TableRow>
@@ -135,11 +134,6 @@ export const ProductManagement: React.FC = () => {
                   </Badge>
                 </TableCell>
                 <TableCell>${product.price.toLocaleString()}</TableCell>
-                <TableCell>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                    In Stock
-                  </span>
-                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

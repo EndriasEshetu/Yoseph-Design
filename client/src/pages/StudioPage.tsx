@@ -15,7 +15,7 @@ export const StudioPage = () => {
             className="text-3xl md:text-4xl lg:text-5xl font-light italic leading-snug text-neutral-800"
             style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
           >
-            "Precision 3D assets for every pipeline from concept to construction. Your format, your workflow. 3D models, CAD files, and more."
+            "Every project tells a story of precision, vision and purpose — from concept sketches to fully realized designs."
           </blockquote>
           <p className="mt-10 text-sm font-medium uppercase tracking-widest text-neutral-600">
             Yoseph Design Studio

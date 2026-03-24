@@ -1,7 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { Product } from '../data/products';
 import { useCart } from '../context/CartContext';
-import { Plus, Info, Box } from 'lucide-react';
+import { Plus, Info, Box, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ZOOM_SCALE = 1.8;
@@ -40,6 +40,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onGet3DModel 
     onGet3DModel?.(product);
   };
 
+  const has3D = product.modelFiles && product.modelFiles.length > 0;
+
   return (
     <div className="group relative">
       <div
@@ -72,11 +74,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onGet3DModel 
              </button>
              <button 
                onClick={handleGet3DModel}
-               className="bg-white text-black p-3 hover:bg-neutral-900 hover:text-white transition-colors flex items-center gap-1.5"
-               title="Get 3D model"
+               className={`p-3 transition-colors flex items-center gap-1.5 ${
+                 has3D
+                   ? 'bg-white text-black hover:bg-neutral-900 hover:text-white'
+                   : 'bg-neutral-200 text-neutral-400 cursor-default'
+               }`}
+               title={has3D ? 'Get 3D model' : '3D model unavailable'}
              >
-               <Box size={20} />
-               <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">3D</span>
+               {has3D ? <Box size={20} /> : <XCircle size={18} />}
+               <span className="text-[10px] font-bold uppercase tracking-wider hidden sm:inline">
+                 {has3D ? '3D' : 'N/A'}
+               </span>
              </button>
            </div>
         </div>

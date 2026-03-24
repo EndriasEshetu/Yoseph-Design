@@ -8,9 +8,11 @@ import { LightWaves } from './LightWaves';
 import { CartDrawer } from './CartDrawer';
 import { CheckoutModal } from './CheckoutModal';
 import { ProductDetail } from './ProductDetail';
+import { StudioModelDetail } from './StudioModelDetail';
 import { CartProvider } from '../context/CartContext';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Product } from '../data/products';
+import { StudioModel } from '../data/studioModels';
 import { ProductShareMeta } from './ProductShareMeta';
 
 export const MainLayout = () => {
@@ -19,6 +21,7 @@ export const MainLayout = () => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [searchSelectedProduct, setSearchSelectedProduct] = useState<Product | null>(null);
+  const [searchSelectedStudioModel, setSearchSelectedStudioModel] = useState<StudioModel | null>(null);
 
   const handleOpenCheckout = () => {
     setIsCartOpen(false);
@@ -34,6 +37,7 @@ export const MainLayout = () => {
           <Header 
             onOpenCart={() => setIsCartOpen(true)} 
             onSelectProduct={setSearchSelectedProduct}
+            onSelectStudioModel={setSearchSelectedStudioModel}
           />
           
           <div className="flex">
@@ -71,6 +75,12 @@ export const MainLayout = () => {
             product={searchSelectedProduct}
             isOpen={!!searchSelectedProduct}
             onClose={() => setSearchSelectedProduct(null)}
+          />
+
+          <StudioModelDetail
+            model={searchSelectedStudioModel}
+            isOpen={!!searchSelectedStudioModel}
+            onClose={() => setSearchSelectedStudioModel(null)}
           />
         </div>
       </StudioCategoryProvider>
