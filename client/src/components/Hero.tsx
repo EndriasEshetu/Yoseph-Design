@@ -17,14 +17,6 @@ export const Hero = () => {
 
       <div className="container mx-auto px-4 md:px-6 relative z-10">
         <div className="max-w-2xl">
-          <motion.span 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-block text-xs font-bold uppercase tracking-[0.3em] text-white/80 mb-4 bg-black/20 backdrop-blur-sm px-3 py-1 rounded"
-          >
-            Curated Architectural Selection
-          </motion.span>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

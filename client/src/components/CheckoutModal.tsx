@@ -21,6 +21,7 @@ export const CheckoutModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: (
       await createOrder({
         customerName: `${formData.firstName} ${formData.lastName}`,
         email: formData.email,
+        address: formData.address,
         items: items.map(item => ({
           id: item.id,
           name: item.name,

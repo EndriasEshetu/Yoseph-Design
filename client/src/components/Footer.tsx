@@ -86,9 +86,9 @@ export const Footer = () => {
             <h4 className="text-[11px] font-bold uppercase tracking-[0.2em] mb-5 text-neutral-300">Support</h4>
             <ul className="space-y-3 text-sm text-neutral-400">
               <li><a href="#" className="hover:text-amber-400 transition-colors">FAQs</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">Shipping & Returns</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors">Order Tracking</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors">Size Guide</a></li>
+              <li><a href="#" className="hover:text-amber-400 transition-colors">About Us</a></li>
               <li><Link to="/contact" className="hover:text-amber-400 transition-colors">Contact Us</Link></li>
             </ul>
           </div>

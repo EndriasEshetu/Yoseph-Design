@@ -13,6 +13,7 @@ interface OrderItem {
 interface CreateOrderData {
   customerName: string;
   email: string;
+  address: string;
   items: OrderItem[];
   total: number;
 }
@@ -57,7 +58,9 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify({
           status: 'pending',
           items: orderData.items.map(item => ({
-            ...products.find(p => p.id === item.id),
+            id: item.id,
+            name: item.name,
+            price: item.price,
             quantity: item.quantity,
           })),
           total: orderData.total,
@@ -65,7 +68,7 @@ export function ShopProvider({ children }: { children: ReactNode }) {
             firstName,
             lastName,
             email: orderData.email,
-            address: '',
+            address: orderData.address,
             city: '',
             zipCode: '',
           },

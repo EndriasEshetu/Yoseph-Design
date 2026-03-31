@@ -288,6 +288,13 @@ export const Header = ({ onOpenCart, onSelectProduct, onSelectStudioModel }: Hea
                 Studio
               </Link>
             )}
+            {/* About Us */}
+            <Link
+              to="/about"
+              className="p-2 text-neutral-600 hover:text-amber-500 transition-colors"
+            >
+              About
+            </Link>
             <button 
               onClick={onOpenCart}
               className="p-2 text-neutral-600 hover:text-black relative"
