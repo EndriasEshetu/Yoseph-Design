@@ -54,8 +54,8 @@ const CustomerInfoSchema = new Schema<ICustomerInfo>(
     lastName: { type: String, required: true },
     email: { type: String, required: true },
     address: { type: String, required: true },
-    city: { type: String, required: true },
-    zipCode: { type: String, required: true },
+    city: { type: String, default: "" },
+    zipCode: { type: String, default: "" },
   },
   { _id: false }
 );
