@@ -1,4 +1,5 @@
 import { StudioModelGrid } from '../components/StudioModelGrid';
+import yosephImage from '../assets/yoseph.png';
 
 export const StudioPage = () => {
   return (
@@ -12,14 +13,18 @@ export const StudioPage = () => {
             Studio
           </span>
           <blockquote
-            className="text-3xl md:text-4xl lg:text-5xl font-light italic leading-snug text-neutral-800"
-            style={{ fontFamily: "'Playfair Display', Georgia, serif" }}
+            className="text-3xl md:text-4xl lg:text-5xl font-light italic leading-snug text-neutral-800 font-playfair"
           >
-            "Every project tells a story of precision, vision and purpose — from concept sketches to fully realized designs."
+            "Every project tells a story of precision, vision and purpose  from concept sketches to fully realized designs."
           </blockquote>
-          <p className="mt-10 text-sm font-medium uppercase tracking-widest text-neutral-600">
-            Yoseph Design Studio
-          </p>
+          <div className="mt-10 flex items-center justify-center gap-3">
+            <div className="w-12 h-12 rounded-full overflow-hidden bg-neutral-200 shrink-0">
+              <img src={yosephImage} alt="Yoseph" className="w-full h-full object-cover" />
+            </div>
+            <p className="text-sm font-medium uppercase tracking-widest text-neutral-600">
+              Yoseph Design Studio
+            </p>
+          </div>
         </div>
       </section>
     </>

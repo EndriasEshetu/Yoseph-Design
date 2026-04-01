@@ -1,19 +1,49 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { SiTiktok } from 'react-icons/si';
 import { FaInstagram, FaYoutube, FaFacebookF, FaLinkedinIn, FaTelegramPlane } from 'react-icons/fa';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+import { API_URL } from '../config';
 import logoImage from '../assets/logo-profile.png';
 
 const socialLinks = [
-  { name: "TikTok", icon: SiTiktok, href: "#" },
-  { name: "Instagram", icon: FaInstagram, href: "#" },
-  { name: "YouTube", icon: FaYoutube, href: "#" },
+  { name: "TikTok", icon: SiTiktok, href: "https://www.tiktok.com/@yosephdesign" },
+  { name: "Instagram", icon: FaInstagram, href: "https://www.instagram.com/yosephdesign" },
+  { name: "YouTube", icon: FaYoutube, href: "https://www.youtube.com/@yosephdesign1" },
   { name: "Facebook", icon: FaFacebookF, href: "#" },
-  { name: "LinkedIn", icon: FaLinkedinIn, href: "#" },
-  { name: "Telegram", icon: FaTelegramPlane, href: "#" }
+  { name: "LinkedIn", icon: FaLinkedinIn, href: "https://www.linkedin.com/in/yosephdesign" },
+  { name: "Telegram", icon: FaTelegramPlane, href: "https://t.me/yosephdesign" }
 ];
 
 export const Footer = () => {
+  const [email, setEmail] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubscribe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/api/newsletter`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        toast.error(typeof data.error === 'string' ? data.error : 'Subscription failed. Please try again.');
+        return;
+      }
+      toast.success('Subscribed!', { description: 'You\'ll receive our latest updates.' });
+      setEmail('');
+    } catch {
+      toast.error('Network error. Please check your connection.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <footer className="bg-neutral-900 text-white">
       {/* Newsletter Section */}
@@ -24,16 +54,24 @@ export const Footer = () => {
               <h3 className="text-lg font-semibold mb-1">Join Our Newsletter</h3>
               <p className="text-sm text-neutral-400">Get exclusive offers and design inspiration delivered to your inbox.</p>
             </div>
-            <div className="flex w-full md:w-auto gap-2">
+            <form onSubmit={handleSubscribe} className="flex w-full md:w-auto gap-2">
               <input 
-                type="email" 
-                placeholder="Enter your email" 
+                type="email"
+                required
+                placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 className="bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-sm focus:border-white outline-none flex-1 md:w-72 transition-colors"
               />
-              <button className="bg-amber-500 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors">
+              <button
+                type="submit"
+                disabled={submitting}
+                className="bg-amber-500 text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-amber-600 transition-colors disabled:opacity-60 disabled:pointer-events-none inline-flex items-center gap-2"
+              >
+                {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
                 Subscribe
               </button>
-            </div>
+            </form>
           </div>
         </div>
       </div>
@@ -88,7 +126,7 @@ export const Footer = () => {
               <li><a href="#" className="hover:text-amber-400 transition-colors">FAQs</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors">Order Tracking</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors">Size Guide</a></li>
-              <li><a href="#" className="hover:text-amber-400 transition-colors">About Us</a></li>
+              <li><a href="/about" className="hover:text-amber-400 transition-colors">About Us</a></li>
               <li><Link to="/contact" className="hover:text-amber-400 transition-colors">Contact Us</Link></li>
             </ul>
           </div>
@@ -103,11 +141,11 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-3">
                 <Phone size={18} className="shrink-0" />
-                <a href="tel:+251911000000" className="hover:text-amber-400 transition-colors">+251 911 000 000</a>
+                <a href="tel:+251947263021" className="hover:text-amber-400 transition-colors">+251 947 263 021</a>
               </li>
               <li className="flex items-center gap-3">
                 <Mail size={18} className="shrink-0" />
-                <a href="mailto:yosephteferi@gmail.com" className="hover:text-amber-400 transition-colors">yosephteferi@gmail.com</a>
+                <a href="mailto:yosephteferi@gmail.com" className="hover:text-amber-400 transition-colors">yosephdesign@gmail.com</a>
               </li>
             </ul>
           </div>

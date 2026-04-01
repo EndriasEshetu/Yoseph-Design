@@ -6,6 +6,7 @@ import {
   Box,
   Boxes,
   ShoppingCart, 
+  MessageSquare,
   Settings, 
   LogOut, 
   Menu, 
@@ -15,6 +16,7 @@ import {
 import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { useAdminAuthStore } from '../../store/adminAuthStore';
+import { STORE_URL } from '../../config';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const SidebarLink = ({ 
@@ -69,6 +71,7 @@ export const AdminLayout: React.FC = () => {
     { to: '/dashboard/models', icon: Boxes, label: '3D Models' },
     { to: '/dashboard/studio', icon: Box, label: 'Studio' },
     { to: '/dashboard/orders', icon: ShoppingCart, label: 'Orders' },
+    { to: '/dashboard/messages', icon: MessageSquare, label: 'Messages' },
     { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
   ];
 
@@ -179,7 +182,12 @@ export const AdminLayout: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            <a href="http://localhost:3000" target="_blank" rel="noreferrer" className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-amber-500 transition-colors">
+            <a
+              href={STORE_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-neutral-400 hover:text-amber-500 transition-colors"
+            >
               View Website
             </a>
           </div>

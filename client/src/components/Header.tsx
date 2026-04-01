@@ -13,13 +13,13 @@ import { useStudioCategory, STUDIO_CATEGORIES } from '../context/StudioCategoryC
 import { useStudio } from '../context/StudioContext';
 
 const socialLinks = [
-  { name: "TikTok", icon: SiTiktok, href: "#" },
-  { name: "Instagram", icon: FaInstagram, href: "#" },
-  { name: "YouTube", icon: FaYoutube, href: "#" },
+  { name: "TikTok", icon: SiTiktok, href: "https://www.tiktok.com/@yosephdesign" },
+  { name: "Instagram", icon: FaInstagram, href: "https://www.instagram.com/yosephdesign" },
+  { name: "YouTube", icon: FaYoutube, href: "https://www.youtube.com/@yosephdesign1" },
   { name: "Facebook", icon: FaFacebookF, href: "#" },
-  { name: "LinkedIn", icon: FaLinkedinIn, href: "#" },
-  { name: "Telegram", icon: FaTelegramPlane, href: "#" },
-  { name: "Email", icon: Mail, href: "mailto:yosephteferi@gmail.com" }
+  { name: "LinkedIn", icon: FaLinkedinIn, href: "https://www.linkedin.com/in/yosephdesign" },
+  { name: "Telegram", icon: FaTelegramPlane, href: "https://t.me/yosephdesign" },
+  { name: "Email", icon: Mail, href: "https://mail.google.com/mail/?view=cm&to=yosephdesign@gmail.com" }
 ];
 
 interface HeaderProps {

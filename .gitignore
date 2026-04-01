@@ -38,3 +38,6 @@ Thumbs.db
 # Cache
 .cache/
 .eslintcache
+
+# Vite temp files
+*.timestamp-*

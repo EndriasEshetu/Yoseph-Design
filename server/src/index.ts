@@ -1,5 +1,6 @@
 import "dotenv/config";
 import crypto from "crypto";
+import dns from "dns/promises";
 import express from "express";
 import cors from "cors";
 import multer from "multer";
@@ -19,10 +20,18 @@ import {
   addStudioModel,
   updateStudioModel,
   deleteStudioModel,
+  createContactMessage,
+  getContactMessages,
+  updateContactMessageStatus,
+  deleteContactMessage,
   type ProductDoc,
   type OrderDoc,
   type OrderStatus,
   type StudioModelDoc,
+  type ContactMessageStatus,
+  subscribeNewsletter,
+  getNewsletterSubscribers,
+  getDashboardStats,
 } from "./store.js";
 
 const app = express();
@@ -255,6 +264,217 @@ app.put("/api/orders/:id/status", requireAdmin, async (req, res) => {
     const updated = await updateOrderStatus(req.params.id, status);
     if (!updated) return res.status(404).json({ error: "Not found" });
     res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// --- Email verification via AbstractAPI (optional) ---
+
+async function verifyEmailAbstract(email: string): Promise<{ ok: boolean; reason?: string }> {
+  const key = process.env.ABSTRACTAPI_EMAIL_KEY;
+  if (!key) return { ok: true };
+
+  try {
+    const url = `https://emailreputation.abstractapi.com/v1/?api_key=${encodeURIComponent(key)}&email=${encodeURIComponent(email)}`;
+    const res = await fetch(url);
+    if (!res.ok) return { ok: true };
+
+    const data = await res.json();
+    const status = data.email_deliverability?.status;
+    const quality = data.email_quality;
+
+    if (status === "undeliverable") {
+      return { ok: false, reason: "This email address does not exist or cannot receive mail." };
+    }
+    if (quality?.is_disposable) {
+      return { ok: false, reason: "Disposable email addresses are not allowed." };
+    }
+    if (quality?.score !== null && quality?.score < 0.3) {
+      return { ok: false, reason: "This email address appears to be invalid or low quality." };
+    }
+    return { ok: true };
+  } catch {
+    return { ok: true };
+  }
+}
+
+// Contact form (public submit; admin list / manage)
+
+const PROVIDER_RULES: Record<string, { minLocal: number; localPattern?: RegExp; label: string }> = {
+  "gmail.com":      { minLocal: 6, localPattern: /^[a-zA-Z0-9.]+$/, label: "Gmail" },
+  "googlemail.com": { minLocal: 6, localPattern: /^[a-zA-Z0-9.]+$/, label: "Gmail" },
+  "yahoo.com":      { minLocal: 4, label: "Yahoo" },
+  "ymail.com":      { minLocal: 4, label: "Yahoo" },
+  "outlook.com":    { minLocal: 3, label: "Outlook" },
+  "hotmail.com":    { minLocal: 3, label: "Hotmail" },
+  "live.com":       { minLocal: 3, label: "Outlook" },
+};
+
+function validateEmailLocal(email: string): string | null {
+  const [local, domain] = email.split("@");
+  if (!local || !domain) return "Invalid email address.";
+
+  const rule = PROVIDER_RULES[domain.toLowerCase()];
+  if (rule) {
+    if (local.length < rule.minLocal) {
+      return `${rule.label} usernames must be at least ${rule.minLocal} characters.`;
+    }
+    if (rule.localPattern && !rule.localPattern.test(local)) {
+      return `${rule.label} usernames can only contain letters, numbers, and dots.`;
+    }
+  } else if (local.length < 2) {
+    return "Email username is too short.";
+  }
+  return null;
+}
+
+async function verifyEmailDomain(email: string): Promise<boolean> {
+  const domain = email.split("@")[1];
+  if (!domain) return false;
+  try {
+    const records = await dns.resolveMx(domain);
+    return records.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+app.post("/api/contact", async (req, res) => {
+  try {
+    const { name, email, phone, category, message } = req.body ?? {};
+    if (
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof category !== "string" ||
+      typeof message !== "string"
+    ) {
+      return res.status(400).json({ error: "Invalid payload" });
+    }
+    const trimmed = {
+      name: name.trim(),
+      email: email.trim(),
+      phone: typeof phone === "string" ? phone.trim() : "",
+      category: category.trim(),
+      message: message.trim(),
+    };
+    if (
+      !trimmed.name ||
+      !trimmed.email ||
+      !trimmed.category ||
+      !trimmed.message
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Name, email, category, and message are required" });
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmed.email)) {
+      return res.status(400).json({ error: "Please enter a valid email address." });
+    }
+
+    const localError = validateEmailLocal(trimmed.email);
+    if (localError) {
+      return res.status(400).json({ error: localError });
+    }
+
+    const domainValid = await verifyEmailDomain(trimmed.email);
+    if (!domainValid) {
+      return res.status(400).json({
+        error: "This email domain does not exist or cannot receive mail. Please use a valid email address (e.g. Gmail, Yahoo, Outlook).",
+      });
+    }
+
+    const abstractCheck = await verifyEmailAbstract(trimmed.email);
+    if (!abstractCheck.ok) {
+      return res.status(400).json({ error: abstractCheck.reason });
+    }
+
+    const created = await createContactMessage(trimmed);
+    res.status(201).json(created);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/contact-messages", requireAdmin, async (_req, res) => {
+  try {
+    res.json(await getContactMessages());
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.patch("/api/contact-messages/:id", requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body as { status?: ContactMessageStatus };
+    const allowed: ContactMessageStatus[] = ["new", "read", "archived"];
+    if (!status || !allowed.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
+    const updated = await updateContactMessageStatus(req.params.id, status);
+    if (!updated) return res.status(404).json({ error: "Not found" });
+    res.json(updated);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/contact-messages/:id", requireAdmin, async (req, res) => {
+  try {
+    const ok = await deleteContactMessage(req.params.id);
+    if (!ok) return res.status(404).json({ error: "Not found" });
+    res.status(204).send();
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Dashboard stats (admin only)
+app.get("/api/dashboard-stats", requireAdmin, async (_req, res) => {
+  try {
+    res.json(await getDashboardStats());
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Newsletter (public subscribe; admin list)
+app.post("/api/newsletter", async (req, res) => {
+  try {
+    const { email } = req.body ?? {};
+    if (typeof email !== "string" || !email.trim()) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    const trimmedEmail = email.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      return res.status(400).json({ error: "Invalid email address" });
+    }
+
+    const domainValid = await verifyEmailDomain(trimmedEmail);
+    if (!domainValid) {
+      return res.status(400).json({
+        error: "This email domain does not exist or cannot receive mail.",
+      });
+    }
+
+    const abstractCheck = await verifyEmailAbstract(trimmedEmail);
+    if (!abstractCheck.ok) {
+      return res.status(400).json({ error: abstractCheck.reason });
+    }
+
+    const created = await subscribeNewsletter(trimmedEmail);
+    res.status(201).json(created);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/newsletter", requireAdmin, async (_req, res) => {
+  try {
+    res.json(await getNewsletterSubscribers());
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

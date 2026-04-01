@@ -29,3 +29,17 @@ export interface AdminUser {
   email: string;
   role: 'admin';
 }
+
+export type ContactMessageStatus = 'new' | 'read' | 'archived';
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  category: string;
+  message: string;
+  status: ContactMessageStatus;
+  createdAt: string;
+  updatedAt: string;
+}

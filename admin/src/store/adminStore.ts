@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { Product } from '../data/products';
-import { Order, OrderStatus } from '../types/admin';
+import { Order, OrderStatus, ContactMessage, ContactMessageStatus } from '../types/admin';
 import { useAdminAuthStore } from './adminAuthStore';
 import { API_URL } from '../config';
 
@@ -18,14 +18,28 @@ export interface StudioModel {
   pdfUrl?: string;
 }
 
+export interface DashboardStats {
+  currentMonth: { revenue: number; orderCount: number };
+  previousMonth: { revenue: number; orderCount: number };
+  totalProducts: number;
+  newsletterCount: number;
+  ordersByStatus: Record<string, number>;
+  revenueByCategory: Record<string, number>;
+  topCategory: string;
+}
+
 interface AdminState {
   products: Product[];
   orders: Order[];
   studioModels: StudioModel[];
+  contactMessages: ContactMessage[];
+  dashboardStats: DashboardStats | null;
   loading: boolean;
   fetchProducts: () => Promise<void>;
   fetchOrders: () => Promise<void>;
   fetchStudioModels: () => Promise<void>;
+  fetchContactMessages: () => Promise<void>;
+  fetchDashboardStats: () => Promise<void>;
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: string) => Promise<void>;
@@ -33,6 +47,8 @@ interface AdminState {
   updateStudioModel: (model: StudioModel) => Promise<void>;
   deleteStudioModel: (id: string) => Promise<void>;
   updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  updateContactMessageStatus: (id: string, status: ContactMessageStatus) => Promise<void>;
+  deleteContactMessage: (id: string) => Promise<void>;
 }
 
 const getAuthHeaders = () => {
@@ -54,7 +70,27 @@ export const useAdminStore = create<AdminState>((set) => ({
   products: [],
   orders: [],
   studioModels: [],
+  contactMessages: [],
+  dashboardStats: null,
   loading: false,
+
+  fetchDashboardStats: async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/dashboard-stats`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.status === 401) {
+        handleAuthError(res);
+        return;
+      }
+      if (res.ok) {
+        const dashboardStats = await res.json();
+        set({ dashboardStats });
+      }
+    } catch (error) {
+      console.error('Failed to fetch dashboard stats:', error);
+    }
+  },
 
   fetchProducts: async () => {
     try {
@@ -104,6 +140,27 @@ export const useAdminStore = create<AdminState>((set) => ({
       }
     } catch (error) {
       console.error('Failed to fetch studio models:', error);
+    } finally {
+      set({ loading: false });
+    }
+  },
+
+  fetchContactMessages: async () => {
+    try {
+      set({ loading: true });
+      const res = await fetch(`${API_URL}/api/contact-messages`, {
+        headers: getAuthHeaders(),
+      });
+      if (res.status === 401) {
+        handleAuthError(res);
+        return;
+      }
+      if (res.ok) {
+        const contactMessages = await res.json();
+        set({ contactMessages });
+      }
+    } catch (error) {
+      console.error('Failed to fetch contact messages:', error);
     } finally {
       set({ loading: false });
     }
@@ -241,6 +298,40 @@ export const useAdminStore = create<AdminState>((set) => ({
       orders: state.orders.map((o) =>
         o.id === orderId ? updatedOrder : o
       ),
+    }));
+  },
+
+  updateContactMessageStatus: async (id, status) => {
+    const res = await fetch(`${API_URL}/api/contact-messages/${id}`, {
+      method: 'PATCH',
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ status }),
+    });
+    if (res.status === 401) {
+      handleAuthError(res);
+      return;
+    }
+    if (!res.ok) throw new Error('Failed to update message');
+    const updated = await res.json();
+    set((state) => ({
+      contactMessages: state.contactMessages.map((m) =>
+        m.id === id ? updated : m
+      ),
+    }));
+  },
+
+  deleteContactMessage: async (id) => {
+    const res = await fetch(`${API_URL}/api/contact-messages/${id}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    if (res.status === 401) {
+      handleAuthError(res);
+      return;
+    }
+    if (!res.ok) throw new Error('Failed to delete message');
+    set((state) => ({
+      contactMessages: state.contactMessages.filter((m) => m.id !== id),
     }));
   },
 }));
