@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { X, Truck } from "lucide-react";
+import { X, Truck, Phone } from "lucide-react";
 import { useCart } from "../context/CartContext";
 import { useShop } from "../context/ShopContext";
 import { toast } from "sonner";
@@ -148,7 +148,7 @@ export const CheckoutModal = ({
                 type="submit"
                 className="w-full bg-amber-500 text-white py-4 mt-8 text-xs font-bold uppercase tracking-widest hover:bg-amber-600 transition-colors"
               >
-                Complete Purchase Br {total.toLocaleString()}
+                Order Now Br {total.toLocaleString()}
               </button>
             </form>
           </div>
@@ -186,11 +186,19 @@ export const CheckoutModal = ({
             </div>
 
             <div className="space-y-4 pt-4">
-              <div className="flex items-center gap-3 text-neutral-500">
-                <Truck size={16} />
-                <span className="text-[10px] uppercase tracking-widest">
-                  2-Day White Glove Delivery
-                </span>
+              <div className="flex flex-col gap-3 text-neutral-500">
+                <div className="flex">
+                  <Truck size={16} />
+                  <span className="text-[10px] uppercase tracking-widest ml-2">
+                    2-Day White Glove Delivery
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone size={16} />
+                  <span className="text-[10px] uppercase tracking-widest text-green-600 font-bold">
+                    +251 947 263 021
+                  </span>
+                </div>
               </div>
             </div>
           </div>

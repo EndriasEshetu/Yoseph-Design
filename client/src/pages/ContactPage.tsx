@@ -309,7 +309,7 @@ export const ContactPage = () => {
                     Email
                   </span>
                   <a
-                    href="mailto:yosephteferi@gmail.com"
+                    href="https://mail.google.com/mail/?view=cm&to=yosephdesign@gmail.com"
                     className="hover:text-amber-600 transition-colors"
                   >
                     yosephdesign@gmail.com
