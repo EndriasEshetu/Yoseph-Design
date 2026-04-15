@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -6,9 +6,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../ui/table';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
+} from "../ui/table";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
 import {
   Search,
   MoreVertical,
@@ -19,16 +19,16 @@ import {
   Trash2,
   Save,
   X,
-} from 'lucide-react';
-import { useAdminStore } from '../../store/adminStore';
-import { Product } from '../../data/products';
+} from "lucide-react";
+import { useAdminStore } from "../../store/adminStore";
+import { Product } from "../../data/products";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { Badge } from '../ui/badge';
+} from "../ui/dropdown-menu";
+import { Badge } from "../ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -36,18 +36,18 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '../ui/dialog';
-import { toast } from 'sonner';
+} from "../ui/dialog";
+import { toast } from "sonner";
 
-const MODEL_FORMATS = ['RVT', 'FBX', 'OBJ', 'SKP', '3DS', 'DWG'] as const;
+const MODEL_FORMATS = ["RVT", "FBX", "OBJ", "SKP", "3DS", "DWG"] as const;
 
 const FORMAT_DESC: Record<string, string> = {
-  RVT: 'Revit — BIM & documentation',
-  FBX: 'FBX — Animation & game engines',
-  OBJ: 'OBJ — Universal 3D exchange',
-  SKP: 'SketchUp — Conceptual modeling',
-  '3DS': '3DS Max — Rendering & V-Ray',
-  DWG: 'AutoCAD — 2D/3D CAD drawings',
+  RVT: "Revit — BIM & documentation",
+  FBX: "FBX — Animation & game engines",
+  OBJ: "OBJ — Universal 3D exchange",
+  SKP: "SketchUp — Conceptual modeling",
+  "3DS": "3DS Max — Rendering & V-Ray",
+  DWG: "AutoCAD — 2D/3D CAD drawings",
 };
 
 interface ModelFile {
@@ -57,7 +57,7 @@ interface ModelFile {
 
 export const ModelManagement: React.FC = () => {
   const { products, loading, fetchProducts, updateProduct } = useAdminStore();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [localFiles, setLocalFiles] = useState<ModelFile[]>([]);
   const [saving, setSaving] = useState(false);
@@ -69,7 +69,7 @@ export const ModelManagement: React.FC = () => {
   const filtered = products.filter(
     (p) =>
       p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchTerm.toLowerCase())
+      p.category.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const openEditor = (product: Product) => {
@@ -84,7 +84,7 @@ export const ModelManagement: React.FC = () => {
 
   const addFormat = (format: string) => {
     if (localFiles.some((f) => f.format === format)) return;
-    setLocalFiles([...localFiles, { format, url: '' }]);
+    setLocalFiles([...localFiles, { format, url: "" }]);
   };
 
   const removeFormat = (index: number) => {
@@ -108,7 +108,7 @@ export const ModelManagement: React.FC = () => {
       toast.success(`3D files updated for "${editingProduct.name}"`);
       closeEditor();
     } catch {
-      toast.error('Failed to save. Is the server running?');
+      toast.error("Failed to save. Is the server running?");
     } finally {
       setSaving(false);
     }
@@ -118,9 +118,9 @@ export const ModelManagement: React.FC = () => {
     if (!window.confirm(`Remove all 3D files from "${product.name}"?`)) return;
     try {
       await updateProduct({ ...product, modelFiles: undefined });
-      toast.success('3D files removed');
+      toast.success("3D files removed");
     } catch {
-      toast.error('Failed to update');
+      toast.error("Failed to update");
     }
   };
 
@@ -130,7 +130,8 @@ export const ModelManagement: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <p className="text-sm text-neutral-500">
-            Attach 3D model files to your products. Only products with files will show the download option to customers.
+            Attach 3D model files to your products. Only products with files
+            will show the download option to customers.
           </p>
         </div>
         <div className="relative w-full md:w-96">
@@ -164,7 +165,10 @@ export const ModelManagement: React.FC = () => {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-8 text-neutral-500">
+                  <TableCell
+                    colSpan={5}
+                    className="text-center py-8 text-neutral-500"
+                  >
                     No products found.
                   </TableCell>
                 </TableRow>
@@ -173,11 +177,18 @@ export const ModelManagement: React.FC = () => {
                   const files = product.modelFiles ?? [];
                   const hasFiles = files.length > 0;
                   return (
-                    <TableRow key={product.id} className="hover:bg-neutral-50/50 border-b border-neutral-100">
+                    <TableRow
+                      key={product.id}
+                      className="hover:bg-neutral-50/50 border-b border-neutral-100"
+                    >
                       <TableCell>
                         <div className="w-12 h-12 rounded-lg bg-neutral-100 overflow-hidden">
                           {product.image ? (
-                            <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
+                            <img
+                              src={product.image}
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center text-neutral-400">
                               <ImageIcon className="w-4 h-4" />
@@ -187,37 +198,56 @@ export const ModelManagement: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <p className="font-medium text-sm">{product.name}</p>
-                        <p className="text-xs text-neutral-400">${product.price.toLocaleString()}</p>
+                        <p className="text-xs text-neutral-400">
+                          Br {product.price.toLocaleString()}
+                        </p>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs">{product.category}</Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {product.category}
+                        </Badge>
                       </TableCell>
                       <TableCell>
                         {hasFiles ? (
                           <div className="flex flex-wrap gap-1">
                             {files.map((f) => (
-                              <Badge key={f.format} className="bg-amber-100 text-amber-800 border-0 text-[10px] font-mono">
+                              <Badge
+                                key={f.format}
+                                className="bg-amber-100 text-amber-800 border-0 text-[10px] font-mono"
+                              >
                                 .{f.format.toLowerCase()}
                               </Badge>
                             ))}
                           </div>
                         ) : (
-                          <span className="text-xs text-neutral-400 italic">No 3D files</span>
+                          <span className="text-xs text-neutral-400 italic">
+                            No 3D files
+                          </span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => openEditor(product)} className="gap-2">
+                            <DropdownMenuItem
+                              onClick={() => openEditor(product)}
+                              className="gap-2"
+                            >
                               <Box className="w-4 h-4" /> Manage 3D Files
                             </DropdownMenuItem>
                             {hasFiles && (
-                              <DropdownMenuItem onClick={() => handleClearAll(product)} className="gap-2 text-red-600">
+                              <DropdownMenuItem
+                                onClick={() => handleClearAll(product)}
+                                className="gap-2 text-red-600"
+                              >
                                 <Trash2 className="w-4 h-4" /> Remove All Files
                               </DropdownMenuItem>
                             )}
@@ -234,7 +264,10 @@ export const ModelManagement: React.FC = () => {
       </div>
 
       {/* Edit 3D Files Dialog */}
-      <Dialog open={!!editingProduct} onOpenChange={(open) => !open && closeEditor()}>
+      <Dialog
+        open={!!editingProduct}
+        onOpenChange={(open) => !open && closeEditor()}
+      >
         <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -242,7 +275,8 @@ export const ModelManagement: React.FC = () => {
               Manage 3D Files
             </DialogTitle>
             <DialogDescription>
-              {editingProduct?.name} — select formats and optionally add download URLs.
+              {editingProduct?.name} — select formats and optionally add
+              download URLs.
             </DialogDescription>
           </DialogHeader>
 
@@ -251,13 +285,16 @@ export const ModelManagement: React.FC = () => {
             {localFiles.length > 0 ? (
               <div className="space-y-2">
                 {localFiles.map((file, index) => (
-                  <div key={index} className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg border border-neutral-100">
+                  <div
+                    key={index}
+                    className="flex items-center gap-2 p-3 bg-neutral-50 rounded-lg border border-neutral-100"
+                  >
                     <span className="text-xs font-bold text-neutral-700 bg-white px-2.5 py-1.5 rounded border border-neutral-200 shrink-0 font-mono">
                       .{file.format.toLowerCase()}
                     </span>
                     <Input
                       placeholder="Download URL (optional)"
-                      value={file.url || ''}
+                      value={file.url || ""}
                       onChange={(e) => updateUrl(index, e.target.value)}
                       className="h-8 text-xs flex-1"
                     />
@@ -275,39 +312,52 @@ export const ModelManagement: React.FC = () => {
               <div className="text-center py-6 bg-neutral-50 rounded-lg border border-dashed border-neutral-200">
                 <Box size={24} className="mx-auto text-neutral-300 mb-2" />
                 <p className="text-sm text-neutral-500">No 3D files attached</p>
-                <p className="text-xs text-neutral-400 mt-0.5">Click a format below to add it</p>
+                <p className="text-xs text-neutral-400 mt-0.5">
+                  Click a format below to add it
+                </p>
               </div>
             )}
 
             {/* Add format buttons */}
             <div>
-              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">Add format</p>
+              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-2">
+                Add format
+              </p>
               <div className="flex flex-wrap gap-1.5">
-                {MODEL_FORMATS.filter((f) => !localFiles.some((mf) => mf.format === f)).map((format) => (
+                {MODEL_FORMATS.filter(
+                  (f) => !localFiles.some((mf) => mf.format === f),
+                ).map((format) => (
                   <button
                     key={format}
                     type="button"
                     onClick={() => addFormat(format)}
                     className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium border border-dashed border-neutral-300 rounded-lg hover:border-amber-400 hover:bg-amber-50 text-neutral-600 hover:text-amber-700 transition-colors"
                   >
-                    <Plus size={12} />
-                    .{format.toLowerCase()}
+                    <Plus size={12} />.{format.toLowerCase()}
                     <span className="text-[10px] text-neutral-400 hidden sm:inline">
-                      — {FORMAT_DESC[format]?.split(' — ')[1]}
+                      — {FORMAT_DESC[format]?.split(" — ")[1]}
                     </span>
                   </button>
                 ))}
                 {localFiles.length === MODEL_FORMATS.length && (
-                  <p className="text-xs text-neutral-400 py-2">All formats added</p>
+                  <p className="text-xs text-neutral-400 py-2">
+                    All formats added
+                  </p>
                 )}
               </div>
             </div>
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={closeEditor}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={closeEditor}>
+              Cancel
+            </Button>
             <Button onClick={handleSave} disabled={saving} className="gap-2">
-              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+              {saving ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Save size={14} />
+              )}
               Save
             </Button>
           </DialogFooter>

@@ -99,7 +99,7 @@ export const Product3DModal = ({ product, isOpen, onClose }: Product3DModalProps
                       </div>
 
                       <p className="text-xs sm:text-sm font-medium text-neutral-800 mb-0.5">{product.name}</p>
-                      <p className="text-[10px] sm:text-xs text-neutral-500 mb-3 sm:mb-4 md:mb-5">{product.category} &middot; ${product.price.toLocaleString()}</p>
+                      <p className="text-[10px] sm:text-xs text-neutral-500 mb-3 sm:mb-4 md:mb-5">{product.category} &middot; Br {product.price.toLocaleString()}</p>
 
                       {hasFiles ? (
                         <>
@@ -151,7 +151,7 @@ export const Product3DModal = ({ product, isOpen, onClose }: Product3DModalProps
                       >
                         <ShoppingBag size={16} className="sm:hidden" />
                         <ShoppingBag size={18} className="hidden sm:block" />
-                        Add to Cart — ${product.price.toLocaleString()}
+                        Add to Cart — Br {product.price.toLocaleString()}
                       </button>
 
                       {selectedFormat && (

@@ -1,6 +1,11 @@
-import { Product } from '../data/products';
+import { Product } from "../data/products";
 
-export type OrderStatus = 'pending' | 'processed' | 'shipped' | 'delivered' | 'cancelled';
+export type OrderStatus =
+  | "pending"
+  | "processed"
+  | "shipped"
+  | "delivered"
+  | "cancelled";
 
 export interface OrderItem extends Product {
   quantity: number;
@@ -10,9 +15,7 @@ export interface CustomerInfo {
   firstName: string;
   lastName: string;
   email: string;
-  address: string;
-  city: string;
-  zipCode: string;
+  phone: string;
 }
 
 export interface Order {
@@ -27,10 +30,10 @@ export interface Order {
 export interface AdminUser {
   id: string;
   email: string;
-  role: 'admin';
+  role: "admin";
 }
 
-export type ContactMessageStatus = 'new' | 'read' | 'archived';
+export type ContactMessageStatus = "new" | "read" | "archived";
 
 export interface ContactMessage {
   id: string;

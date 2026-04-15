@@ -21,9 +21,7 @@ export interface ICustomerInfo {
   firstName: string;
   lastName: string;
   email: string;
-  address: string;
-  city: string;
-  zipCode: string;
+  phone: string;
 }
 
 export interface IOrder extends Document {
@@ -45,7 +43,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
     image: { type: String },
     quantity: { type: Number, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const CustomerInfoSchema = new Schema<ICustomerInfo>(
@@ -53,11 +51,9 @@ const CustomerInfoSchema = new Schema<ICustomerInfo>(
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     email: { type: String, required: true },
-    address: { type: String, required: true },
-    city: { type: String, default: "" },
-    zipCode: { type: String, default: "" },
+    phone: { type: String, required: true },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const OrderSchema = new Schema<IOrder>(
@@ -84,7 +80,7 @@ const OrderSchema = new Schema<IOrder>(
         return ret;
       },
     },
-  }
+  },
 );
 
 export const Order = mongoose.model<IOrder>("Order", OrderSchema);

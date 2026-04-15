@@ -123,7 +123,7 @@ export const DashboardHome: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
           title="Total Revenue" 
-          value={`$${totalRevenue.toLocaleString()}`} 
+          value={`Br ${totalRevenue.toLocaleString()}`} 
           icon={TrendingUp} 
           change={revenueChange} 
         />
@@ -169,7 +169,7 @@ export const DashboardHome: React.FC = () => {
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold">+${order.total.toLocaleString()}</p>
+                    <p className="text-sm font-bold">+Br {order.total.toLocaleString()}</p>
                     <p className="text-[10px] text-neutral-400 uppercase tracking-tighter">{order.status}</p>
                   </div>
                 </div>

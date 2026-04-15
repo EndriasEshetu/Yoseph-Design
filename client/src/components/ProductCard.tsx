@@ -126,7 +126,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onGet3DModel 
           <h3 className="text-sm font-medium uppercase tracking-wider text-neutral-800 line-clamp-1">{product.name}</h3>
           <p className="text-xs text-neutral-500 mt-1">{product.category}</p>
         </div>
-        <span className="text-sm font-semibold whitespace-nowrap">${product.price.toLocaleString()}</span>
+        <span className="text-sm font-semibold whitespace-nowrap">Br {product.price.toLocaleString()}</span>
       </div>
     </div>
   );

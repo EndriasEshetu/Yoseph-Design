@@ -1,5 +1,9 @@
 import { Product, type IProduct } from "./models/Product.js";
-import { StudioModel, type IStudioModel, type ModelFormat } from "./models/StudioModel.js";
+import {
+  StudioModel,
+  type IStudioModel,
+  type ModelFormat,
+} from "./models/StudioModel.js";
 import { Order, type IOrder, type OrderStatus } from "./models/Order.js";
 import {
   ContactMessage,
@@ -52,9 +56,7 @@ export type OrderDoc = {
     firstName: string;
     lastName: string;
     email: string;
-    address: string;
-    city: string;
-    zipCode: string;
+    phone: string;
   };
 };
 
@@ -83,7 +85,7 @@ export async function getProductById(id: string): Promise<ProductDoc | null> {
 }
 
 export async function addProduct(
-  p: Omit<ProductDoc, "id">
+  p: Omit<ProductDoc, "id">,
 ): Promise<ProductDoc> {
   const doc = await Product.create(p);
   return doc.toJSON() as unknown as ProductDoc;
@@ -91,7 +93,7 @@ export async function addProduct(
 
 export async function updateProduct(
   id: string,
-  p: Partial<ProductDoc>
+  p: Partial<ProductDoc>,
 ): Promise<ProductDoc | null> {
   const doc = await Product.findByIdAndUpdate(id, p, { new: true });
   return doc ? (doc.toJSON() as unknown as ProductDoc) : null;
@@ -110,7 +112,7 @@ export async function getOrders(): Promise<OrderDoc[]> {
 }
 
 export async function createOrder(
-  order: Omit<OrderDoc, "id" | "date">
+  order: Omit<OrderDoc, "id" | "date">,
 ): Promise<OrderDoc> {
   const doc = await Order.create({
     ...order,
@@ -122,12 +124,12 @@ export async function createOrder(
 
 export async function updateOrderStatus(
   orderId: string,
-  status: OrderStatus
+  status: OrderStatus,
 ): Promise<OrderDoc | null> {
   const doc = await Order.findOneAndUpdate(
     { orderId },
     { status },
-    { new: true }
+    { new: true },
   );
   return doc ? (doc.toJSON() as unknown as OrderDoc) : null;
 }
@@ -140,14 +142,14 @@ export async function getStudioModels(): Promise<StudioModelDoc[]> {
 }
 
 export async function getStudioModelById(
-  id: string
+  id: string,
 ): Promise<StudioModelDoc | null> {
   const doc = await StudioModel.findById(id);
   return doc ? (doc.toJSON() as unknown as StudioModelDoc) : null;
 }
 
 export async function addStudioModel(
-  m: Omit<StudioModelDoc, "id">
+  m: Omit<StudioModelDoc, "id">,
 ): Promise<StudioModelDoc> {
   const doc = await StudioModel.create(m);
   return doc.toJSON() as unknown as StudioModelDoc;
@@ -155,7 +157,7 @@ export async function addStudioModel(
 
 export async function updateStudioModel(
   id: string,
-  m: Partial<StudioModelDoc>
+  m: Partial<StudioModelDoc>,
 ): Promise<StudioModelDoc | null> {
   const doc = await StudioModel.findByIdAndUpdate(id, m, { new: true });
   return doc ? (doc.toJSON() as unknown as StudioModelDoc) : null;
@@ -186,7 +188,7 @@ function toContactMessageDoc(doc: IContactMessage): ContactMessageDoc {
 }
 
 export async function createContactMessage(
-  input: Omit<ContactMessageDoc, "id" | "status" | "createdAt" | "updatedAt">
+  input: Omit<ContactMessageDoc, "id" | "status" | "createdAt" | "updatedAt">,
 ): Promise<ContactMessageDoc> {
   const doc = await ContactMessage.create({
     name: input.name,
@@ -205,12 +207,12 @@ export async function getContactMessages(): Promise<ContactMessageDoc[]> {
 
 export async function updateContactMessageStatus(
   id: string,
-  status: ContactMessageStatus
+  status: ContactMessageStatus,
 ): Promise<ContactMessageDoc | null> {
   const doc = await ContactMessage.findByIdAndUpdate(
     id,
     { status },
-    { new: true }
+    { new: true },
   );
   return doc ? toContactMessageDoc(doc) : null;
 }
@@ -228,17 +230,22 @@ export type NewsletterDoc = {
   createdAt: string;
 };
 
-export async function subscribeNewsletter(email: string): Promise<NewsletterDoc> {
+export async function subscribeNewsletter(
+  email: string,
+): Promise<NewsletterDoc> {
   const doc = await Newsletter.findOneAndUpdate(
     { email: email.toLowerCase().trim() },
     { email: email.toLowerCase().trim() },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
+    { upsert: true, new: true, setDefaultsOnInsert: true },
   );
   const j = doc.toJSON() as unknown as Record<string, unknown>;
   return {
     id: String(j.id),
     email: String(j.email),
-    createdAt: j.createdAt instanceof Date ? j.createdAt.toISOString() : String(j.createdAt ?? ""),
+    createdAt:
+      j.createdAt instanceof Date
+        ? j.createdAt.toISOString()
+        : String(j.createdAt ?? ""),
   };
 }
 
@@ -253,7 +260,10 @@ export async function getNewsletterSubscribers(): Promise<NewsletterDoc[]> {
     return {
       id: String(j.id),
       email: String(j.email),
-      createdAt: j.createdAt instanceof Date ? j.createdAt.toISOString() : String(j.createdAt ?? ""),
+      createdAt:
+        j.createdAt instanceof Date
+          ? j.createdAt.toISOString()
+          : String(j.createdAt ?? ""),
     };
   });
 }
@@ -290,7 +300,10 @@ export async function getDashboardStats(): Promise<DashboardStats> {
     if (orderDate >= currentMonthStart) {
       curRevenue += order.total;
       curCount++;
-    } else if (orderDate >= previousMonthStart && orderDate < currentMonthStart) {
+    } else if (
+      orderDate >= previousMonthStart &&
+      orderDate < currentMonthStart
+    ) {
       prevRevenue += order.total;
       prevCount++;
     }
@@ -300,12 +313,14 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
     for (const item of order.items) {
       const cat = item.category || "Uncategorized";
-      revenueByCategory[cat] = (revenueByCategory[cat] || 0) + item.price * item.quantity;
+      revenueByCategory[cat] =
+        (revenueByCategory[cat] || 0) + item.price * item.quantity;
     }
   }
 
   const topCategory =
-    Object.entries(revenueByCategory).sort(([, a], [, b]) => b - a)[0]?.[0] || "N/A";
+    Object.entries(revenueByCategory).sort(([, a], [, b]) => b - a)[0]?.[0] ||
+    "N/A";
 
   const [totalProducts, newsletterCount] = await Promise.all([
     Product.countDocuments(),

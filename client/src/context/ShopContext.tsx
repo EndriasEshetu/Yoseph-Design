@@ -1,7 +1,13 @@
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { Product } from '../data/products';
-import { toast } from 'sonner';
-import { API_URL } from '../config';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import { Product } from "../data/products";
+import { toast } from "sonner";
+import { API_URL } from "../config";
 
 interface OrderItem {
   id: string;
@@ -13,7 +19,7 @@ interface OrderItem {
 interface CreateOrderData {
   customerName: string;
   email: string;
-  address: string;
+  phone: string;
   items: OrderItem[];
   total: number;
 }
@@ -40,8 +46,8 @@ export function ShopProvider({ children }: { children: ReactNode }) {
         setProducts(data);
       }
     } catch (error) {
-      console.error('Failed to fetch products:', error);
-      toast.error('Failed to load products. Make sure the server is running.');
+      console.error("Failed to fetch products:", error);
+      toast.error("Failed to load products. Make sure the server is running.");
     } finally {
       setLoading(false);
     }
@@ -49,15 +55,15 @@ export function ShopProvider({ children }: { children: ReactNode }) {
 
   const createOrder = async (orderData: CreateOrderData) => {
     try {
-      const [firstName, ...lastNameParts] = orderData.customerName.split(' ');
-      const lastName = lastNameParts.join(' ') || '';
-      
+      const [firstName, ...lastNameParts] = orderData.customerName.split(" ");
+      const lastName = lastNameParts.join(" ") || "";
+
       const res = await fetch(`${API_URL}/api/orders`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status: 'pending',
-          items: orderData.items.map(item => ({
+          status: "pending",
+          items: orderData.items.map((item) => ({
             id: item.id,
             name: item.name,
             price: item.price,
@@ -68,18 +74,16 @@ export function ShopProvider({ children }: { children: ReactNode }) {
             firstName,
             lastName,
             email: orderData.email,
-            address: orderData.address,
-            city: '',
-            zipCode: '',
+            phone: orderData.phone,
           },
         }),
       });
-      
+
       if (!res.ok) {
-        throw new Error('Failed to create order');
+        throw new Error("Failed to create order");
       }
     } catch (error) {
-      console.error('Failed to create order:', error);
+      console.error("Failed to create order:", error);
       throw error;
     }
   };
@@ -89,7 +93,9 @@ export function ShopProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <ShopContext.Provider value={{ products, loading, refetchProducts: fetchProducts, createOrder }}>
+    <ShopContext.Provider
+      value={{ products, loading, refetchProducts: fetchProducts, createOrder }}
+    >
       {children}
     </ShopContext.Provider>
   );
@@ -97,6 +103,6 @@ export function ShopProvider({ children }: { children: ReactNode }) {
 
 export function useShop() {
   const context = useContext(ShopContext);
-  if (!context) throw new Error('useShop must be used within a ShopProvider');
+  if (!context) throw new Error("useShop must be used within a ShopProvider");
   return context;
 }

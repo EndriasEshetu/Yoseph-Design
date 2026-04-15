@@ -53,34 +53,43 @@ cloudinary.config({
 });
 
 // Multer configuration for memory storage
-const upload = multer({ 
+const upload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
-  fileFilter: (_req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    if (file.mimetype.startsWith('image/')) {
+  fileFilter: (
+    _req: express.Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback,
+  ) => {
+    if (file.mimetype.startsWith("image/")) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed'));
+      cb(new Error("Only image files are allowed"));
     }
-  }
+  },
 });
 
 const pdfUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 25 * 1024 * 1024 },
-  fileFilter: (_req: express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
-    if (file.mimetype === 'application/pdf') {
+  fileFilter: (
+    _req: express.Request,
+    file: Express.Multer.File,
+    cb: multer.FileFilterCallback,
+  ) => {
+    if (file.mimetype === "application/pdf") {
       cb(null, true);
     } else {
-      cb(new Error('Only PDF files are allowed'));
+      cb(new Error("Only PDF files are allowed"));
     }
-  }
+  },
 });
 
 // Admin auth — credentials stored in MongoDB with hardcoded fallback
 const DEFAULT_ADMIN_EMAIL = "admin@example.com";
 const DEFAULT_ADMIN_PASSWORD = "admin123";
-const TOKEN_SECRET = process.env.TOKEN_SECRET ?? "fallback-token-secret-change-me";
+const TOKEN_SECRET =
+  process.env.TOKEN_SECRET ?? "fallback-token-secret-change-me";
 
 async function getOrCreateAdmin() {
   let admin = await AdminSettings.findOne();
@@ -97,7 +106,10 @@ async function getOrCreateAdmin() {
 
 function createAdminToken(email: string): string {
   const payload = `${email}:admin:${Date.now()}`;
-  return "admin-" + crypto.createHmac("sha256", TOKEN_SECRET).update(payload).digest("hex");
+  return (
+    "admin-" +
+    crypto.createHmac("sha256", TOKEN_SECRET).update(payload).digest("hex")
+  );
 }
 
 let _cachedToken: string | null = null;
@@ -127,13 +139,20 @@ app.post("/api/auth/login", async (req, res) => {
     const token = createAdminToken(admin.email);
     _cachedToken = token;
     _cachedTokenEmail = admin.email;
-    return res.json({ token, user: { id: admin.id, email: admin.email, role: "admin" } });
+    return res.json({
+      token,
+      user: { id: admin.id, email: admin.email, role: "admin" },
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
 
-function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
+function requireAdmin(
+  req: express.Request,
+  res: express.Response,
+  next: express.NextFunction,
+) {
   const token = req.headers.authorization?.replace(/^Bearer\s+/i, "").trim();
   if (!token || !isValidAdminToken(token)) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -178,15 +197,24 @@ app.put("/api/settings/profile", requireAdmin, async (req, res) => {
 app.put("/api/settings/password", requireAdmin, async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body ?? {};
-    if (typeof currentPassword !== "string" || typeof newPassword !== "string") {
-      return res.status(400).json({ error: "Both current and new passwords are required" });
+    if (
+      typeof currentPassword !== "string" ||
+      typeof newPassword !== "string"
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Both current and new passwords are required" });
     }
     if (newPassword.length < 6) {
-      return res.status(400).json({ error: "New password must be at least 6 characters" });
+      return res
+        .status(400)
+        .json({ error: "New password must be at least 6 characters" });
     }
 
     const admin = await getOrCreateAdmin();
-    if (!verifyPassword(currentPassword, admin.passwordHash, admin.passwordSalt)) {
+    if (
+      !verifyPassword(currentPassword, admin.passwordHash, admin.passwordSalt)
+    ) {
       return res.status(400).json({ error: "Current password is incorrect" });
     }
 
@@ -226,85 +254,103 @@ app.get("/api/settings/services", requireAdmin, async (_req, res) => {
 });
 
 // Image Upload endpoint
-app.post("/api/upload", requireAdmin, upload.single("image"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No image file provided" });
-    }
+app.post(
+  "/api/upload",
+  requireAdmin,
+  upload.single("image"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
 
-    if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name') {
-      return res.status(500).json({ 
-        error: "Cloudinary not configured", 
-        message: "Please set up Cloudinary credentials in server/.env file" 
+      if (
+        !process.env.CLOUDINARY_CLOUD_NAME ||
+        process.env.CLOUDINARY_CLOUD_NAME === "your_cloud_name"
+      ) {
+        return res.status(500).json({
+          error: "Cloudinary not configured",
+          message: "Please set up Cloudinary credentials in server/.env file",
+        });
+      }
+
+      const result = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "yoseph-design/products",
+            resource_type: "image",
+            transformation: [
+              { width: 1200, height: 1200, crop: "limit" },
+              { quality: "auto:good" },
+              { fetch_format: "auto" },
+            ],
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        uploadStream.end(req.file!.buffer);
       });
+
+      res.json({
+        url: result.secure_url,
+        public_id: result.public_id,
+      });
+    } catch (error: any) {
+      console.error("Upload error:", error);
+      res.status(500).json({ error: "Upload failed", message: error.message });
     }
-
-    const result = await new Promise<any>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "yoseph-design/products",
-          resource_type: "image",
-          transformation: [
-            { width: 1200, height: 1200, crop: "limit" },
-            { quality: "auto:good" },
-            { fetch_format: "auto" }
-          ]
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      uploadStream.end(req.file!.buffer);
-    });
-
-    res.json({ 
-      url: result.secure_url,
-      public_id: result.public_id 
-    });
-  } catch (error: any) {
-    console.error("Upload error:", error);
-    res.status(500).json({ error: "Upload failed", message: error.message });
-  }
-});
+  },
+);
 
 // PDF Upload endpoint
-app.post("/api/upload-pdf", requireAdmin, pdfUpload.single("pdf"), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ error: "No PDF file provided" });
-    }
+app.post(
+  "/api/upload-pdf",
+  requireAdmin,
+  pdfUpload.single("pdf"),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No PDF file provided" });
+      }
 
-    if (!process.env.CLOUDINARY_CLOUD_NAME || process.env.CLOUDINARY_CLOUD_NAME === 'your_cloud_name') {
-      return res.status(500).json({
-        error: "Cloudinary not configured",
-        message: "Please set up Cloudinary credentials in server/.env file"
+      if (
+        !process.env.CLOUDINARY_CLOUD_NAME ||
+        process.env.CLOUDINARY_CLOUD_NAME === "your_cloud_name"
+      ) {
+        return res.status(500).json({
+          error: "Cloudinary not configured",
+          message: "Please set up Cloudinary credentials in server/.env file",
+        });
+      }
+
+      const result = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: "yoseph-design/studio-pdfs",
+            resource_type: "raw",
+          },
+          (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+          },
+        );
+        uploadStream.end(req.file!.buffer);
       });
+
+      res.json({
+        url: result.secure_url,
+        public_id: result.public_id,
+      });
+    } catch (error: any) {
+      console.error("PDF upload error:", error);
+      res
+        .status(500)
+        .json({ error: "PDF upload failed", message: error.message });
     }
-
-    const result = await new Promise<any>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: "yoseph-design/studio-pdfs",
-          resource_type: "raw",
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        }
-      );
-      uploadStream.end(req.file!.buffer);
-    });
-
-    res.json({
-      url: result.secure_url,
-      public_id: result.public_id
-    });
-  } catch (error: any) {
-    console.error("PDF upload error:", error);
-    res.status(500).json({ error: "PDF upload failed", message: error.message });
-  }
-});
+  },
+);
 
 // Products (public read; admin write)
 app.get("/api/products", async (_req, res) => {
@@ -387,7 +433,9 @@ app.put("/api/orders/:id/status", requireAdmin, async (req, res) => {
 
 // --- Email verification via AbstractAPI (optional) ---
 
-async function verifyEmailAbstract(email: string): Promise<{ ok: boolean; reason?: string }> {
+async function verifyEmailAbstract(
+  email: string,
+): Promise<{ ok: boolean; reason?: string }> {
   const key = process.env.ABSTRACTAPI_EMAIL_KEY;
   if (!key) return { ok: true };
 
@@ -401,13 +449,22 @@ async function verifyEmailAbstract(email: string): Promise<{ ok: boolean; reason
     const quality = data.email_quality;
 
     if (status === "undeliverable") {
-      return { ok: false, reason: "This email address does not exist or cannot receive mail." };
+      return {
+        ok: false,
+        reason: "This email address does not exist or cannot receive mail.",
+      };
     }
     if (quality?.is_disposable) {
-      return { ok: false, reason: "Disposable email addresses are not allowed." };
+      return {
+        ok: false,
+        reason: "Disposable email addresses are not allowed.",
+      };
     }
     if (quality?.score !== null && quality?.score < 0.3) {
-      return { ok: false, reason: "This email address appears to be invalid or low quality." };
+      return {
+        ok: false,
+        reason: "This email address appears to be invalid or low quality.",
+      };
     }
     return { ok: true };
   } catch {
@@ -417,14 +474,21 @@ async function verifyEmailAbstract(email: string): Promise<{ ok: boolean; reason
 
 // Contact form (public submit; admin list / manage)
 
-const PROVIDER_RULES: Record<string, { minLocal: number; localPattern?: RegExp; label: string }> = {
-  "gmail.com":      { minLocal: 6, localPattern: /^[a-zA-Z0-9.]+$/, label: "Gmail" },
-  "googlemail.com": { minLocal: 6, localPattern: /^[a-zA-Z0-9.]+$/, label: "Gmail" },
-  "yahoo.com":      { minLocal: 4, label: "Yahoo" },
-  "ymail.com":      { minLocal: 4, label: "Yahoo" },
-  "outlook.com":    { minLocal: 3, label: "Outlook" },
-  "hotmail.com":    { minLocal: 3, label: "Hotmail" },
-  "live.com":       { minLocal: 3, label: "Outlook" },
+const PROVIDER_RULES: Record<
+  string,
+  { minLocal: number; localPattern?: RegExp; label: string }
+> = {
+  "gmail.com": { minLocal: 6, localPattern: /^[a-zA-Z0-9.]+$/, label: "Gmail" },
+  "googlemail.com": {
+    minLocal: 6,
+    localPattern: /^[a-zA-Z0-9.]+$/,
+    label: "Gmail",
+  },
+  "yahoo.com": { minLocal: 4, label: "Yahoo" },
+  "ymail.com": { minLocal: 4, label: "Yahoo" },
+  "outlook.com": { minLocal: 3, label: "Outlook" },
+  "hotmail.com": { minLocal: 3, label: "Hotmail" },
+  "live.com": { minLocal: 3, label: "Outlook" },
 };
 
 function validateEmailLocal(email: string): string | null {
@@ -487,7 +551,9 @@ app.post("/api/contact", async (req, res) => {
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmed.email)) {
-      return res.status(400).json({ error: "Please enter a valid email address." });
+      return res
+        .status(400)
+        .json({ error: "Please enter a valid email address." });
     }
 
     const localError = validateEmailLocal(trimmed.email);
@@ -498,7 +564,8 @@ app.post("/api/contact", async (req, res) => {
     const domainValid = await verifyEmailDomain(trimmed.email);
     if (!domainValid) {
       return res.status(400).json({
-        error: "This email domain does not exist or cannot receive mail. Please use a valid email address (e.g. Gmail, Yahoo, Outlook).",
+        error:
+          "This email domain does not exist or cannot receive mail. Please use a valid email address (e.g. Gmail, Yahoo, Outlook).",
       });
     }
 

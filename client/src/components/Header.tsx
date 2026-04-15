@@ -240,7 +240,7 @@ export const Header = ({ onOpenCart, onSelectProduct, onSelectStudioModel }: Hea
                                   )}
                                 </div>
                               </div>
-                              <p className="text-sm font-semibold shrink-0">${product.price.toLocaleString()}</p>
+                              <p className="text-sm font-semibold shrink-0">Br {product.price.toLocaleString()}</p>
                             </button>
                           ))
                       }
@@ -371,7 +371,7 @@ export const Header = ({ onOpenCart, onSelectProduct, onSelectStudioModel }: Hea
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate">{product.name}</p>
                                 <div className="flex items-center gap-2">
-                                  <p className="text-xs text-neutral-500">${product.price.toLocaleString()} · {product.category}</p>
+                                  <p className="text-xs text-neutral-500">Br {product.price.toLocaleString()} · {product.category}</p>
                                   {product.modelFiles && product.modelFiles.length > 0 && (
                                     <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded">
                                       <Box size={10} /> 3D
