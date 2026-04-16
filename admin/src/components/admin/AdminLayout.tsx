@@ -7,6 +7,7 @@ import {
   Boxes,
   ShoppingCart,
   UserCheck,
+  Users,
   MessageSquare,
   Settings,
   LogOut,
@@ -80,6 +81,7 @@ export const AdminLayout: React.FC = () => {
     { to: "/dashboard/client-access", icon: UserCheck, label: "Client Access" },
     { to: "/dashboard/studio", icon: Box, label: "Studio" },
     { to: "/dashboard/orders", icon: ShoppingCart, label: "Orders" },
+    { to: "/dashboard/subscribers", icon: Users, label: "Subscribers" },
     { to: "/dashboard/messages", icon: MessageSquare, label: "Messages" },
     { to: "/dashboard/settings", icon: Settings, label: "Settings" },
   ];

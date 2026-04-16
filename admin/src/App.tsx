@@ -10,6 +10,7 @@ import { OrderManagement } from "./components/admin/OrderManagement";
 import { ContactManagement } from "./components/admin/ContactManagement";
 import { ModelManagement } from "./components/admin/ModelManagement";
 import { ClientAccessManagement } from "./components/admin/ClientAccessManagement";
+import { SubscribersManagement } from "./components/admin/SubscribersManagement";
 import { SettingsManagement } from "./components/admin/SettingsManagement";
 import { ProtectedRoute } from "./components/admin/ProtectedRoute";
 import { useAdminAuthStore } from "./store/adminAuthStore";
@@ -56,6 +57,7 @@ function App() {
           <Route path="client-access" element={<ClientAccessManagement />} />
           <Route path="studio" element={<StudioManagement />} />
           <Route path="orders" element={<OrderManagement />} />
+          <Route path="subscribers" element={<SubscribersManagement />} />
           <Route path="messages" element={<ContactManagement />} />
           <Route path="settings" element={<SettingsManagement />} />
         </Route>

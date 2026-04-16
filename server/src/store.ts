@@ -269,6 +269,19 @@ export async function getNewsletterSubscribers(): Promise<NewsletterDoc[]> {
   });
 }
 
+export async function deleteNewsletterSubscriber(id: string): Promise<boolean> {
+  const result = await Newsletter.findByIdAndDelete(id);
+  return result !== null;
+}
+
+export async function deleteNewsletterSubscribersByIds(
+  ids: string[],
+): Promise<number> {
+  if (ids.length === 0) return 0;
+  const result = await Newsletter.deleteMany({ _id: { $in: ids } });
+  return result.deletedCount ?? 0;
+}
+
 // --- Dashboard Stats ---
 
 export interface DashboardStats {

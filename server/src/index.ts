@@ -32,6 +32,8 @@ import {
   subscribeNewsletter,
   getNewsletterSubscribers,
   getDashboardStats,
+  deleteNewsletterSubscriber,
+  deleteNewsletterSubscribersByIds,
 } from "./store.js";
 import {
   AdminSettings,
@@ -1158,6 +1160,30 @@ app.post("/api/newsletter", async (req, res) => {
 app.get("/api/newsletter", requireAdmin, async (_req, res) => {
   try {
     res.json(await getNewsletterSubscribers());
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/newsletter/:id", requireAdmin, async (req, res) => {
+  try {
+    const ok = await deleteNewsletterSubscriber(req.params.id);
+    if (!ok) return res.status(404).json({ error: "Subscriber not found" });
+    res.status(204).send();
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post("/api/newsletter/bulk-delete", requireAdmin, async (req, res) => {
+  try {
+    const { ids } = req.body as { ids?: string[] };
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ error: "ids array is required" });
+    }
+
+    const deletedCount = await deleteNewsletterSubscribersByIds(ids);
+    res.json({ deletedCount });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
