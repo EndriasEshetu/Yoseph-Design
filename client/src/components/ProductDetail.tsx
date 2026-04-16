@@ -62,84 +62,24 @@ export const ProductDetail = ({
     { type: "telegram", name: "Telegram", icon: FaTelegramPlane },
   ] as const;
 
-  const handleShare = async (type: (typeof shareLinks)[number]["type"]) => {
+  const handleShare = (type: (typeof shareLinks)[number]["type"]) => {
     const encodedUrl = encodeURIComponent(productShareUrl);
     const encodedText = encodeURIComponent(productShareText);
 
     const shareUrlMap = {
+      tiktok: productShareUrl,
+      instagram: productShareUrl,
       whatsapp: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`,
       telegram: `https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
     } as const;
 
-    if (type in shareUrlMap) {
-      window.open(
-        shareUrlMap[type as keyof typeof shareUrlMap],
-        "_blank",
-        "noopener,noreferrer",
-      );
-      return;
-    }
+    const targetUrl = shareUrlMap[type];
 
-    if (type === "tiktok" || type === "instagram") {
-      const shareData = {
-        title: product.name,
-        text: productShareText,
-        url: productShareUrl,
-      };
+    if (!targetUrl) return;
 
-      if (typeof navigator !== "undefined" && navigator.share) {
-        try {
-          await navigator.share(shareData);
-          return;
-        } catch (error) {
-          if ((error as DOMException)?.name !== "AbortError") {
-            console.error("Native share failed:", error);
-          }
-        }
-      }
-
-      try {
-        await navigator.clipboard.writeText(productShareUrl);
-        toast.success(
-          `${type === "tiktok" ? "TikTok" : "Instagram"} share link copied. Open the app and paste it to post the product.`,
-        );
-      } catch (error) {
-        console.error("Failed to copy product link:", error);
-        toast.error(
-          `Unable to share to ${type === "tiktok" ? "TikTok" : "Instagram"} automatically. Please copy the link manually.`,
-        );
-      }
-      return;
-    }
-
-    const shareData = {
-      title: product.name,
-      text: productShareText,
-      url: productShareUrl,
-    };
-
-    if (typeof navigator !== "undefined" && navigator.share) {
-      try {
-        await navigator.share(shareData);
-        return;
-      } catch (error) {
-        if ((error as DOMException)?.name !== "AbortError") {
-          console.error("Native share failed:", error);
-        }
-      }
-    }
-
-    try {
-      await navigator.clipboard.writeText(productShareUrl);
-      toast.success("Product link copied to clipboard");
-    } catch (error) {
-      console.error("Failed to copy product link:", error);
-      toast.error(
-        "Unable to share automatically. Please copy the link manually.",
-      );
-    }
+    window.open(targetUrl, "_blank", "noopener,noreferrer");
   };
 
   return (
