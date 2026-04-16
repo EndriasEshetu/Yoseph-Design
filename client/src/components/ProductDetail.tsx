@@ -49,7 +49,7 @@ export const ProductDetail = ({
 
   const productShareUrl =
     typeof window !== "undefined"
-      ? `${(SITE_URL || window.location.origin).replace(/\/$/, "")}/api/share?product=${encodeURIComponent(product.id)}`
+      ? `${(SITE_URL || window.location.origin).replace(/\/$/, "")}/?product=${encodeURIComponent(product.id)}`
       : "";
   const productShareText = `Check out ${product.name} - Br ${product.price.toLocaleString()}`;
 
